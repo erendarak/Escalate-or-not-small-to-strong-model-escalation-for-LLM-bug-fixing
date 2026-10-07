@@ -25,6 +25,7 @@ class Config:
     data_dir: Path
     results_dir: Path
     tasks: list[str] | None = None  # optional explicit subset
+    feedback_only_policies: tuple = ()  # hand-off without the previous code (exploratory escalate_clean)
     raw: dict | None = None
 
 
@@ -32,6 +33,9 @@ def load_config(path: str | Path) -> Config:
     raw = yaml.safe_load(Path(path).read_text(encoding="utf-8"))
     models = {k: ModelSpec(key=k, **v) for k, v in raw["models"].items()}
     policies = raw["policies"]
+    feedback_only = tuple(raw.get("feedback_only_policies") or ())
+    if set(feedback_only) - set(policies):
+        raise ValueError(f"feedback_only_policies not in policies: {set(feedback_only) - set(policies)}")
     for name, seq in policies.items():
         if len(seq) != 2:
             raise ValueError(f"policy {name}: exactly 2 attempts required (fairness rule)")
@@ -44,5 +48,5 @@ def load_config(path: str | Path) -> Config:
         test_timeout_s=raw.get("test_timeout_s", 3.0), budget_usd=raw.get("budget_usd", 0.0),
         transport_retries=raw.get("transport_retries", 2),
         data_dir=ROOT / raw.get("data_dir", "data"), results_dir=ROOT / raw.get("results_dir", "results"),
-        tasks=raw.get("tasks"), raw=raw,
+        tasks=raw.get("tasks"), feedback_only_policies=feedback_only, raw=raw,
     )

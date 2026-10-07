@@ -42,7 +42,9 @@ def format_feedback(task: PublicTask, result: SuiteResult, max_items: int = 5) -
     return f"{result.n_pass}/{result.n} visible tests passed. Failures:\n" + "\n".join(lines)
 
 
-def build_messages(task: PublicTask, previous_code: str | None = None, feedback: str | None = None) -> list[dict]:
+def build_messages(task: PublicTask, previous_code: str | None = None, feedback: str | None = None,
+                   show_previous_code: bool = True) -> list[dict]:
+    """show_previous_code=False (exploratory escalate_clean hand-off): feedback only, no previous code."""
     examples = "\n".join(
         _fmt_case({"func": task.func_name, **c}) for c in task.public_cases)
     user = (f"The function `{task.func_name}` below has a bug.\n\n"
@@ -50,9 +52,11 @@ def build_messages(task: PublicTask, previous_code: str | None = None, feedback:
             f"Visible tests (there are more hidden tests, so fix the real bug, do not special-case inputs):\n"
             f"{examples}\n")
     if feedback is not None:
-        if previous_code:
+        if previous_code and show_previous_code:
             user += (f"\nA previous attempt produced this code, which is still wrong:\n"
                      f"```python\n{previous_code.rstrip()}\n```\n")
+        elif previous_code:
+            user += "\nA previous attempt is still wrong.\n"
         else:
             user += "\nA previous attempt did not produce usable code.\n"
         user += (f"Result of the previous attempt:\n{feedback}\n"

@@ -106,7 +106,8 @@ def run_one(cfg: Config, clients: dict, store: Store, task_id: str, policy: str,
             if store.spent_usd() + worst > cfg.budget_usd:
                 raise BudgetExhausted(f"budget {cfg.budget_usd} USD would be exceeded")
 
-        messages = build_messages(task, prev_code, feedback)
+        show_code = policy not in cfg.feedback_only_policies
+        messages = build_messages(task, prev_code, feedback, show_previous_code=show_code)
         prompt_text = "\n\n".join(f"[{m['role']}]\n{m['content']}" for m in messages)
         try:
             resp, n_retries = _call_with_retries(client, messages, cfg.transport_retries, seed)
@@ -141,6 +142,7 @@ def run_one(cfg: Config, clients: dict, store: Store, task_id: str, policy: str,
             repeat=repeat, attempt=attempt, model_key=mkey, model=spec.model, model_id_reported=resp.model_id,
             hosting=spec.hosting, timestamp_utc=_now(), prompt_version=PROMPT_VERSION,
             seed=seed, temperature=spec.temperature,
+            handoff=("code+feedback" if show_code else "feedback_only") if attempt == 2 else None,
             prompt_hash=_h(prompt_text), response_hash=_h(resp.text), candidate_hash=_h(cand.code),
             input_tokens=resp.input_tokens, output_tokens=resp.output_tokens, latency_s=round(resp.latency_s, 3),
             cost_usd=resp.cost_usd, transport_retries=n_retries, candidate_valid=cand.valid,

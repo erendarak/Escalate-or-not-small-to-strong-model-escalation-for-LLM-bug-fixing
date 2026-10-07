@@ -201,3 +201,32 @@ def test_break_even_from_logs(cfg):
     assert (out / "break_even_escalate.svg").read_text(encoding="utf-8").startswith("<svg")
     rows = (out / "break_even_escalate.csv").read_text(encoding="utf-8").splitlines()
     assert len(rows) == 1 + 5 and all(r.endswith("0.000") for r in rows[1:])
+
+
+def test_feedback_only_handoff_hides_previous_code(cfg):
+    """Exploratory escalate_clean: attempt 2 gets the visible feedback but not the small model's code."""
+    wrong = load_public(cfg.data_dir, TASK).buggy_code.replace("return gcd(a % b, b)", "return gcd(a % b, b) + 0")
+    ref = load_private(cfg.data_dir, TASK).reference_code
+    prompts = {}
+    for pol, fb_only in (("escalate", ()), ("escalate_clean", ("escalate_clean",))):
+        c = replace(cfg, policies={**cfg.policies, "escalate_clean": ["small", "strong"]}, feedback_only_policies=fb_only)
+        store = Store(cfg.results_dir / pol)
+        rec = run_one(c, {"small": Scripted(code(wrong)), "strong": Scripted(code(ref))}, store, TASK, pol, 0)
+        assert rec["escalated"] and rec["resolved"]
+        prompts[pol] = next((store.root / "artifacts").glob("*/attempt2_prompt.txt")).read_text(encoding="utf-8")
+        logged = [json.loads(l) for l in store.attempts.read_text(encoding="utf-8").splitlines()]
+        assert [a["handoff"] for a in logged] == [None, "feedback_only" if fb_only else "code+feedback"]
+    assert "gcd(a % b, b) + 0" in prompts["escalate"]
+    assert "gcd(a % b, b) + 0" not in prompts["escalate_clean"]
+    assert "A previous attempt is still wrong." in prompts["escalate_clean"]
+    assert "visible tests passed" in prompts["escalate_clean"]
+
+
+def test_default_handoff_prompt_matches_frozen_version():
+    """The escalate hand-off prompt must stay byte-identical to the one frozen at tag eval-local-freeze."""
+    import hashlib
+    from routing_pilot.prompts import build_messages
+    msgs = build_messages(load_public(ROOT / "data", TASK), "def gcd(a, b):\n    return 0\n",
+                          "0/2 visible tests passed. Failures:\n- x")
+    text = "\n\n".join(f"[{m['role']}]\n{m['content']}" for m in msgs)
+    assert hashlib.sha256(text.encode()).hexdigest()[:16] == "78373559355de481"   # computed from the tagged code

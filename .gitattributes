@@ -1,0 +1,11 @@
+# Same line endings on every OS, so files rebuilt from logs diff cleanly in CI.
+* text=auto eol=lf
+*.py text eol=lf
+*.md text eol=lf
+*.csv text eol=lf
+*.svg text eol=lf
+*.json text eol=lf
+*.jsonl text eol=lf
+*.yaml text eol=lf
+*.yml text eol=lf
+*.toml text eol=lf

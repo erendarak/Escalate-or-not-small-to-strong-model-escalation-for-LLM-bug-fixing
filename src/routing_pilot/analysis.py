@@ -83,12 +83,13 @@ def summarise(campaign_dir: Path, reference_policy: str = "strong_only") -> str:
               "candidate passed visible tests. Costs of local models are standardized list-price estimates "
               "(see config comments for source/date), not money spent; tokens and latency are measured."]
     text = "\n".join(lines)
-    (campaign_dir / "summary.md").write_text(text, encoding="utf-8")
+    # LF on every OS (write_bytes skips newline translation), so committed outputs rebuild byte-identically in CI.
+    (campaign_dir / "summary.md").write_bytes(text.encode("utf-8"))
 
     # per-task matrix for error analysis
     tasks = sorted({r["task_id"] for r in valid})
     with (campaign_dir / "per_task.csv").open("w", newline="", encoding="utf-8") as f:
-        w = csv.writer(f)
+        w = csv.writer(f, lineterminator="\n")
         w.writerow(["task_id"] + list(rows))
         for t in tasks:
             w.writerow([t] + [f"{sum(r['resolved'] for r in by_pol[p] if r['task_id'] == t)}/"
@@ -180,9 +181,9 @@ def _break_even(campaign_dir: Path, valid: list[dict], attempts: list[dict]) -> 
         need_r = (1 / p) if p > 0 else float("inf")
         saves = p * b["c_strong"] > b["c_small"]
         svg = f"break_even_{b['policy']}.svg"
-        (campaign_dir / svg).write_text(_break_even_svg(b), encoding="utf-8")
+        (campaign_dir / svg).write_bytes(_break_even_svg(b).encode("utf-8"))
         with (campaign_dir / f"break_even_{b['policy']}.csv").open("w", newline="", encoding="utf-8") as f:
-            w = csv.writer(f)
+            w = csv.writer(f, lineterminator="\n")
             w.writerow(["task_id", "p_small_first_try"])
             w.writerows([t, f"{v:.3f}"] for t, v in b["p_task"].items())
         n0 = sum(v == 0 for v in b["p_task"].values())

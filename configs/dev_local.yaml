@@ -2,7 +2,7 @@
 # Tune the prompt / timeouts here. Do NOT look at eval tasks while tuning.
 #   ollama pull qwen2.5-coder:1.5b
 #   ollama pull qwen2.5-coder:7b
-campaign: dev_local_v1
+campaign: dev_local_v2
 split: dev
 repeats: 1
 seed: 0                # base seed; repeat r uses seed + r (temperature 0.2 -> repeats are real samples)

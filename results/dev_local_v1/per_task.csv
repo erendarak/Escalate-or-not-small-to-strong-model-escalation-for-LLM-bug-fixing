@@ -1,6 +1,6 @@
 task_id,small_only,escalate,strong_only
 find_first_in_sorted,0/1,1/1,1/1
-gcd,0/1,1/1,1/1
+gcd,1/1,1/1,1/1
 kheapsort,0/1,1/1,1/1
 possible_change,0/1,1/1,1/1
-wrap,0/1,1/1,1/1
+wrap,0/1,0/1,0/1

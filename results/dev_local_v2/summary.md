@@ -27,4 +27,11 @@ Cost basis per model:
 - small = qwen2.5-coder:1.5b: $0.1/1M in, $0.1/1M out (list-price estimate, runs locally)
 - strong = qwen2.5-coder:7b: $0.2/1M in, $0.2/1M out (list-price estimate, runs locally)
 
+Break-even (escalate: small -> strong; pre-registered, see docs/experiment_protocol.md):
+- p_small_first_try (task-avg, visible pass on call 1) = 0.200; tasks with p = 0: 4/5
+- mean cost per first call: C_small = $0.000071, C_strong = $0.000108 -> measured ratio C_strong/C_small = 1.51
+- escalation saves money iff ratio > 1/p = 5.00 -> does NOT save at the measured ratio
+- at illustrative frontier/small price ratios (equal tokens per call assumed): 10x -> saves, 30x -> saves, 100x -> saves
+- plot: break_even_escalate.svg; per-task p: break_even_escalate.csv
+
 Notes: resolution = valid output AND all visible AND all hidden tests pass. False acceptance = passed visible tests but failed hidden tests, among runs whose final candidate passed visible tests. Costs of local models are standardized list-price estimates (see config comments for source/date), not money spent; tokens and latency are measured.

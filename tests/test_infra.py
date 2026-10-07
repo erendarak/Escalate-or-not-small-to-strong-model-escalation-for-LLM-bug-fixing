@@ -190,3 +190,14 @@ def test_lines_changed_counts_code_only():
     cand = build_candidate(code(no_doc), "gcd", buggy)
     assert cand.lines_changed == fix and cand.lines_changed_raw > 10   # docstring/comment loss not counted
     assert build_candidate(code(buggy), "gcd", buggy).lines_changed == 0
+
+
+def test_break_even_from_logs(cfg):
+    """Fake campaign: echo small never passes first try (p = 0) -> escalation can never save money."""
+    from routing_pilot.analysis import summarise
+    out = run_campaign(cfg)
+    text = summarise(out)
+    assert "p_small_first_try (task-avg, visible pass on call 1) = 0.000" in text and "does NOT save" in text
+    assert (out / "break_even_escalate.svg").read_text(encoding="utf-8").startswith("<svg")
+    rows = (out / "break_even_escalate.csv").read_text(encoding="utf-8").splitlines()
+    assert len(rows) == 1 + 5 and all(r.endswith("0.000") for r in rows[1:])

@@ -57,13 +57,17 @@ class OpenAICompatClient:
         self.spec = spec
         self.client = OpenAI(base_url=spec.base_url, api_key=key, timeout=timeout_s, max_retries=0)
 
-    def generate(self, messages: list[dict]) -> ModelResponse:
+    def generate(self, messages: list[dict], seed: int | None = None) -> ModelResponse:
+        """`seed` (set per repeat by the runner) overrides any seed in spec.extra."""
         import openai
+        kwargs = dict(self.spec.extra)
+        if seed is not None:
+            kwargs["seed"] = seed
         t0 = time.perf_counter()
         try:
             r = self.client.chat.completions.create(
                 model=self.spec.model, messages=messages, temperature=self.spec.temperature,
-                max_tokens=self.spec.max_tokens, **self.spec.extra)
+                max_tokens=self.spec.max_tokens, **kwargs)
         except (openai.APIConnectionError, openai.APITimeoutError, openai.RateLimitError,
                 openai.InternalServerError) as exc:
             raise InfraError(f"{type(exc).__name__}: {exc}") from exc
@@ -94,7 +98,7 @@ class FakeClient:
         self.behaviour = spec.model
         self.current_task = None  # set by the runner before each call (fake only)
 
-    def generate(self, messages: list[dict]) -> ModelResponse:
+    def generate(self, messages: list[dict], seed: int | None = None) -> ModelResponse:
         from .tasks import load_private, load_public
         if self.behaviour == "echo":
             code = load_public(self.data_dir, self.current_task).buggy_code

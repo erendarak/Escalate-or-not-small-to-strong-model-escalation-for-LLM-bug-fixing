@@ -12,7 +12,7 @@ import pytest
 from routing_pilot.candidate import build_candidate
 from routing_pilot.config import ROOT, load_config
 from routing_pilot.experiment import Store, run_campaign, run_one
-from routing_pilot.models import InfraError, ModelResponse
+from routing_pilot.models import InfraError, ModelResponse, ModelSpec, OpenAICompatClient
 from routing_pilot.sandbox import SuiteResult, run_suite
 from routing_pilot.tasks import load_private, load_public
 
@@ -28,10 +28,11 @@ def cfg(tmp_path):
 class Scripted:
     """Client returning pre-written responses in order (or raising InfraError)."""
     def __init__(self, *texts):
-        self.texts, self.calls = list(texts), 0
+        self.texts, self.calls, self.seeds = list(texts), 0, []
 
-    def generate(self, messages):
+    def generate(self, messages, seed=None):
         self.calls += 1
+        self.seeds.append(seed)
         t = self.texts.pop(0)
         if isinstance(t, Exception):
             raise t
@@ -112,3 +113,36 @@ def test_resume_does_not_rerun_or_rebill(cfg):
     run_campaign(cfg)
     n2 = len((out / "runs.jsonl").read_text().splitlines())
     assert n1 == n2
+
+
+def test_each_repeat_gets_its_own_seed(cfg):
+    ref = load_private(cfg.data_dir, TASK).reference_code
+    store = Store(cfg.results_dir / "t")
+    seen = {}
+    for repeat in (0, 1, 2):
+        small, strong = Scripted("no code"), Scripted(code(ref))
+        run_one(cfg, {"small": small, "strong": strong}, store, TASK, "escalate", repeat)
+        assert small.seeds == strong.seeds == [cfg.seed + repeat]  # both attempts of a run share the seed
+        seen[repeat] = small.seeds[0]
+    assert len(set(seen.values())) == 3
+    logged = [json.loads(l)["seed"] for l in store.attempts.read_text(encoding="utf-8").splitlines()]
+    assert logged == [cfg.seed, cfg.seed, cfg.seed + 1, cfg.seed + 1, cfg.seed + 2, cfg.seed + 2]
+
+
+def test_openai_client_sends_per_call_seed_and_temperature():
+    class Stub:
+        def __init__(self):
+            self.kwargs = None
+            self.chat = self
+            self.completions = self
+
+        def create(self, **kwargs):
+            self.kwargs = kwargs
+            msg = type("M", (), {"content": "ok"})
+            return type("R", (), {"choices": [type("C", (), {"message": msg})], "model": "m", "usage": None})
+
+    client = OpenAICompatClient(ModelSpec(key="s", kind="openai_compat", model="m", base_url="http://x/v1",
+                                          temperature=0.2, extra={"seed": 999}))
+    client.client = stub = Stub()
+    client.generate([{"role": "user", "content": "hi"}], seed=7)
+    assert stub.kwargs["seed"] == 7 and stub.kwargs["temperature"] == 0.2

@@ -70,12 +70,12 @@ class Store:
         (d / name).write_text(content or "", encoding="utf-8")
 
 
-def _call_with_retries(client, messages, retries: int):
+def _call_with_retries(client, messages, retries: int, seed: int):
     """Transport retries only. A bad answer is NOT retried (that would cherry-pick)."""
     last = None
     for i in range(retries + 1):
         try:
-            return client.generate(messages), i
+            return client.generate(messages, seed=seed), i
         except InfraError as exc:
             last = exc
             time.sleep(2 ** i)
@@ -86,6 +86,7 @@ def run_one(cfg: Config, clients: dict, store: Store, task_id: str, policy: str,
     task = load_public(cfg.data_dir, task_id)
     run_id = uuid.uuid4().hex[:12]
     run_key = f"{task_id}|{policy}|{repeat}"
+    seed = cfg.seed + repeat   # each repeat is a fresh sample; same seed for every policy within a repeat
     t_start = time.perf_counter()
     feedback, prev_code, cand, pub = None, None, None, None
     api_s, test_s, calls, cost, models_used = 0.0, 0.0, 0, 0.0, []
@@ -106,7 +107,7 @@ def run_one(cfg: Config, clients: dict, store: Store, task_id: str, policy: str,
         messages = build_messages(task, prev_code, feedback)
         prompt_text = "\n\n".join(f"[{m['role']}]\n{m['content']}" for m in messages)
         try:
-            resp, n_retries = _call_with_retries(client, messages, cfg.transport_retries)
+            resp, n_retries = _call_with_retries(client, messages, cfg.transport_retries, seed)
         except InfraError as exc:
             infra = str(exc)
             store.append(store.attempts, dict(run_id=run_id, run_key=run_key, task_id=task_id, policy=policy,
@@ -136,6 +137,7 @@ def run_one(cfg: Config, clients: dict, store: Store, task_id: str, policy: str,
             run_id=run_id, run_key=run_key, campaign=cfg.campaign, task_id=task_id, policy=policy,
             repeat=repeat, attempt=attempt, model_key=mkey, model=spec.model, model_id_reported=resp.model_id,
             hosting=spec.hosting, timestamp_utc=_now(), prompt_version=PROMPT_VERSION,
+            seed=seed, temperature=spec.temperature,
             prompt_hash=_h(prompt_text), response_hash=_h(resp.text), candidate_hash=_h(cand.code),
             input_tokens=resp.input_tokens, output_tokens=resp.output_tokens, latency_s=round(resp.latency_s, 3),
             cost_usd=resp.cost_usd, transport_retries=n_retries, candidate_valid=cand.valid,

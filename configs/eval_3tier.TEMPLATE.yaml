@@ -5,7 +5,7 @@
 campaign: eval_3tier_v1
 split: eval
 repeats: 3
-seed: 2026
+seed: 2026                # base seed; repeat r uses seed + r (temperature 0.2 -> repeats are real samples)
 test_timeout_s: 3
 budget_usd: 15         # hard stop for paid calls
 models:
@@ -13,17 +13,18 @@ models:
     kind: openai_compat
     model: qwen2.5-coder:1.5b
     base_url: http://localhost:11434/v1
-    extra: {seed: 0}
+    temperature: 0.2
   medium:
     kind: openai_compat
     model: qwen2.5-coder:7b
     base_url: http://localhost:11434/v1
-    extra: {seed: 0}
+    temperature: 0.2
   frontier:
     kind: openai_compat
     model: FILL_ME                       # e.g. a model id from your provider
     base_url: FILL_ME                    # e.g. https://api.openai.com/v1 or https://openrouter.ai/api/v1
     api_key_env: FRONTIER_API_KEY        # set this env variable; never put the key in this file
+    temperature: 0.2
     usd_per_1m_input: 0.0                # FILL from official pricing page (date: ____, url: ____)
     usd_per_1m_output: 0.0
     hosting: api

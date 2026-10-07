@@ -1,0 +1,65 @@
+{
+ "campaign": "escalate_clean_v1",
+ "split": "eval",
+ "repeats": 3,
+ "seed": 2026,
+ "test_timeout_s": 3,
+ "budget_usd": 0,
+ "models": {
+  "small": {
+   "kind": "openai_compat",
+   "model": "qwen2.5-coder:1.5b",
+   "usd_per_1m_input": 0.1,
+   "usd_per_1m_output": 0.1,
+   "base_url": "http://localhost:11434/v1",
+   "temperature": 0.2
+  },
+  "strong": {
+   "kind": "openai_compat",
+   "model": "qwen2.5-coder:7b",
+   "usd_per_1m_input": 0.2,
+   "usd_per_1m_output": 0.2,
+   "base_url": "http://localhost:11434/v1",
+   "temperature": 0.2
+  }
+ },
+ "policies": {
+  "escalate_clean": [
+   "small",
+   "strong"
+  ]
+ },
+ "feedback_only_policies": [
+  "escalate_clean"
+ ],
+ "prompt_version": "repair_v1",
+ "started_utc": "2026-10-07T20:47:26+00:00",
+ "models_resolved": {
+  "small": {
+   "key": "small",
+   "kind": "openai_compat",
+   "model": "qwen2.5-coder:1.5b",
+   "base_url": "http://localhost:11434/v1",
+   "api_key_env": null,
+   "usd_per_1m_input": 0.1,
+   "usd_per_1m_output": 0.1,
+   "temperature": 0.2,
+   "max_tokens": 1500,
+   "extra": {},
+   "hosting": "local"
+  },
+  "strong": {
+   "key": "strong",
+   "kind": "openai_compat",
+   "model": "qwen2.5-coder:7b",
+   "base_url": "http://localhost:11434/v1",
+   "api_key_env": null,
+   "usd_per_1m_input": 0.2,
+   "usd_per_1m_output": 0.2,
+   "temperature": 0.2,
+   "max_tokens": 1500,
+   "extra": {},
+   "hosting": "local"
+  }
+ }
+}

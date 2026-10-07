@@ -105,3 +105,48 @@ How it is checked, fixed now:
   and overall resolution, cost and calls for escalate_clean, next to escalate and strong_only.
 - Not done: the pre-registered decision rule is not re-applied to declare escalate_clean a
   success, because this policy was designed after seeing the eval results.
+
+## Result of `escalate_clean_v1` (added after the run)
+
+Tables: `docs/exploratory_handoff_tables.md`, regenerated with
+`python scripts/exploratory.py eval_local_v1 escalate_clean_v1`. 78 runs, 0 infra errors.
+
+- **Reproducibility of the small model's first attempt** (same prompt and seed):
+  - 66/78 candidates are byte-identical to `eval_local_v1`, and 76/78 have the same
+    visible-test outcome.
+  - 50 (task, repeat) pairs escalated in both campaigns; 2 escalated in only one (to_base r1,
+    r2), and both of those were resolved either way.
+- **Primary comparison (prediction above):** on the 50 pairs, escalate_clean resolved 7 that
+  escalate failed, and escalate resolved 0 that escalate_clean failed.
+  - **Exact two-sided sign test: p = 0.016** (exploratory).
+  - The 7 pairs are subsequences r0–r2, knapsack r1–r2, mergesort r0 and get_factors r2.
+  - **The prediction held.** Removing the small model's code from the hand-off recovered the
+    lost runs.
+- **Secondary comparison:** escalate_clean's second attempt vs the 7B single shot on a clean
+  prompt (strong_only attempt 1), same pairs. Discordant 3 vs 1, p = 0.63, so no detectable
+  difference.
+  - With the code removed, the 7B does about as well as when it starts fresh.
+- **Overall (descriptive):**
+
+  | Policy | Resolution | Solved | Cost (est.) |
+  |---|---|---|---|
+  | escalate_clean | 88.5% | 69/78 | $0.0104 |
+  | strong_only | 85.9% | 67/78 | $0.0085 |
+  | escalate | 79.5% | 62/78 | $0.0132 |
+
+  - All non-primary pairs had identical outcomes, so the +7 runs over escalate come entirely
+    from the hand-off change.
+  - escalate_clean still costs **+22%** more than strong_only. The feedback-only prompt is
+    shorter, which saves money relative to escalate, but at the local price ratio (1.7× measured;
+    break-even needs > 2.9× at p = 0.35) escalation still cannot save money.
+- **Latency is not comparable:** another GPU-heavy application ran during part of this campaign
+  (GPU at 99%, thermal slowdown active), so its latencies (median e2e 21 s) say nothing about
+  the policy.
+
+**Interpretation, exploratory:**
+- In this setting, the quality loss of escalate came from the hand-off context, not from
+  escalation itself.
+- A hand-off that passes only the visible-test feedback kept the strong model's quality.
+- This is one benchmark, two local models and a post-hoc design. It would need a pre-registered
+  replication, for example in the `eval_3tier` frontier campaign with a feedback-only hand-off
+  fixed in advance, before it can be claimed.

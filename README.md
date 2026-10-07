@@ -1,5 +1,5 @@
-# Routing pilot: small-to-strong model escalation for LLM bug fixing
-
+# Escalate or not: small-to-strong model escalation for LLM bug fixing
+![tests](https://github.com/erendarak/escalate-or-not/actions/workflows/ci.yml/badge.svg)
 An independent study on a public benchmark.
 
 A bug-fixing agent can start with a cheap model and call a stronger model only when the
@@ -10,7 +10,7 @@ before the eval run. Under those rules escalation lost: 79.5% resolved against 8
 strong model alone, at 56% higher estimated cost. A follow-up analysis, done after seeing the
 results, found that most of the quality loss came from the hand-off. When the strong model was
 shown the small model's wrong code, it did worse. Passing only the test feedback instead
-recovered all the lost runs (7 vs 0 discordant pairs, exact sign test p = 0.016). With these two
+solved 7 escalated runs that the original hand-off failed, and lost none (7 vs 0, exact sign test p = 0.016, exploratory). With these two
 models escalation still cannot save money, because the 7B costs only about 1.7 times as much
 per call as the 1.5B.
 

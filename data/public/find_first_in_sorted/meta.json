@@ -2,5 +2,8 @@
  "task_id": "find_first_in_sorted",
  "func_name": "find_first_in_sorted",
  "split": "dev",
- "source": "QuixBugs"
+ "source": "QuixBugs",
+ "bug_type_ye": "Incorrect comparison operator",
+ "bug_type": "Incorrect comparison operator",
+ "bug_family": "operator"
 }

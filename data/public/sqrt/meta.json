@@ -2,5 +2,8 @@
  "task_id": "sqrt",
  "func_name": "sqrt",
  "split": "eval",
- "source": "QuixBugs"
+ "source": "QuixBugs",
+ "bug_type_ye": "Incorrect arithmetic expression",
+ "bug_type": "Incorrect arithmetic expression",
+ "bug_family": "operator"
 }

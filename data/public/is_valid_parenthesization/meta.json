@@ -1,6 +1,9 @@
 {
  "task_id": "is_valid_parenthesization",
  "func_name": "is_valid_parenthesization",
- "split": "dev",
- "source": "QuixBugs"
+ "split": "eval",
+ "source": "QuixBugs",
+ "bug_type_ye": "Other code replacement",
+ "bug_type": "Other code replacement",
+ "bug_family": "condition"
 }

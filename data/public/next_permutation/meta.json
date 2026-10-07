@@ -2,5 +2,8 @@
  "task_id": "next_permutation",
  "func_name": "next_permutation",
  "split": "eval",
- "source": "QuixBugs"
+ "source": "QuixBugs",
+ "bug_type_ye": "Incorrect comparison operator",
+ "bug_type": "Incorrect comparison operator",
+ "bug_family": "operator"
 }

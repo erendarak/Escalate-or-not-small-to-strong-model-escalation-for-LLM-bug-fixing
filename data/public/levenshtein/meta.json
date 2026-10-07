@@ -2,5 +2,9 @@
  "task_id": "levenshtein",
  "func_name": "levenshtein",
  "split": "eval",
- "source": "QuixBugs"
+ "source": "QuixBugs",
+ "bug_type_ye": "Missing '+1'",
+ "bug_type": "Added '+1'",
+ "bug_family": "boundary",
+ "bug_type_note": "Python fix removes '1 +'"
 }

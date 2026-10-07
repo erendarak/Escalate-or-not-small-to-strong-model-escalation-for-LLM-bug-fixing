@@ -2,5 +2,8 @@
  "task_id": "rpn_eval",
  "func_name": "rpn_eval",
  "split": "eval",
- "source": "QuixBugs"
+ "source": "QuixBugs",
+ "bug_type_ye": "Expression swap",
+ "bug_type": "Expression swap",
+ "bug_family": "variable"
 }

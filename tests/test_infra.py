@@ -4,6 +4,7 @@ If the evaluator is wrong, every number in the report is wrong, so these run
 before any real model is used:  python -m pytest -q
 """
 import json
+import shutil
 from dataclasses import replace
 from pathlib import Path
 
@@ -153,3 +154,27 @@ def test_budget_counts_only_billed_api_calls(tmp_path):
     store.append(store.attempts, {"hosting": "local", "cost_usd": 5.0})   # list-price estimate, never billed
     store.append(store.attempts, {"hosting": "api", "cost_usd": 0.25})
     assert store.spent_usd() == 0.25
+
+
+def test_bug_labels_never_reach_a_prompt(cfg, tmp_path):
+    """Labels sit in public meta.json for analysis; plant unique sentinels and check no prompt carries them."""
+    data = tmp_path / "data"
+    shutil.copytree(cfg.data_dir, data)
+    for meta_path in (data / "public").glob("*/meta.json"):
+        meta = json.loads(meta_path.read_text(encoding="utf-8"))
+        for k in ("bug_type", "bug_type_ye", "bug_family", "bug_type_note"):
+            meta[k] = f"SENTINEL_{k}_{meta['task_id']}"
+        meta_path.write_text(json.dumps(meta), encoding="utf-8")
+    out = run_campaign(replace(cfg, data_dir=data))
+    prompts = "\n".join(p.read_text(encoding="utf-8") for p in (out / "artifacts").rglob("*_prompt.txt"))
+    assert prompts and "SENTINEL" not in prompts
+    runs = [json.loads(l) for l in (out / "runs.jsonl").read_text(encoding="utf-8").splitlines()]
+    assert all(r["bug_family"].startswith("SENTINEL_bug_family_") for r in runs)  # labels do reach the logs
+
+
+def test_every_task_is_labelled_and_every_family_is_in_dev():
+    metas = [json.loads(p.read_text(encoding="utf-8")) for p in (ROOT / "data" / "public").glob("*/meta.json")]
+    assert all(m.get("bug_type") and m.get("bug_type_ye") and m.get("bug_family") for m in metas)
+    assert all(("bug_type_note" in m) == (m["bug_type"] != m["bug_type_ye"]) for m in metas)
+    families = {m["bug_family"] for m in metas}
+    assert families == {m["bug_family"] for m in metas if m["split"] == "dev"}

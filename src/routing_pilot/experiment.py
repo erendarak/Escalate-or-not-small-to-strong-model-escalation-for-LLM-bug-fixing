@@ -24,7 +24,7 @@ from .config import Config
 from .models import FakeClient, InfraError, make_client
 from .prompts import PROMPT_VERSION, build_messages, format_feedback
 from .sandbox import run_suite
-from .tasks import list_tasks, load_private, load_public
+from .tasks import list_tasks, load_labels, load_private, load_public
 
 
 def _h(text: str | None) -> str | None:
@@ -175,7 +175,7 @@ def run_one(cfg: Config, clients: dict, store: Store, task_id: str, policy: str,
 
     rec = dict(
         run_id=run_id, run_key=run_key, campaign=cfg.campaign, task_id=task_id, policy=policy, repeat=repeat,
-        final_status=status, resolved=status == "resolved",
+        **load_labels(cfg.data_dir, task_id), final_status=status, resolved=status == "resolved",
         final_public_pass=bool(pub and pub.passed), hidden_pass=hidden_pass,
         hidden_cases_passed=hidden_n, hidden_cases_total=hidden_total,
         false_acceptance=bool(pub and pub.passed and hidden_pass is False),

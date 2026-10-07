@@ -1,6 +1,10 @@
 {
  "task_id": "kheapsort",
  "func_name": "kheapsort",
- "split": "eval",
- "source": "QuixBugs"
+ "split": "dev",
+ "source": "QuixBugs",
+ "bug_type_ye": "Missing function call",
+ "bug_type": "Missing array slice",
+ "bug_family": "boundary",
+ "bug_type_note": "Java fix is subList(); Python fix is arr -> arr[k:]"
 }

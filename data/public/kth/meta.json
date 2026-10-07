@@ -2,5 +2,9 @@
  "task_id": "kth",
  "func_name": "kth",
  "split": "eval",
- "source": "QuixBugs"
+ "source": "QuixBugs",
+ "bug_type_ye": "Reference to an incorrect variable",
+ "bug_type": "Incorrect argument value",
+ "bug_family": "variable",
+ "bug_type_note": "Python fix passes k - num_lessoreq instead of k"
 }

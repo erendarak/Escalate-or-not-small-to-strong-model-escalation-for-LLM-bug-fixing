@@ -2,5 +2,9 @@
  "task_id": "subsequences",
  "func_name": "subsequences",
  "split": "eval",
- "source": "QuixBugs"
+ "source": "QuixBugs",
+ "bug_type_ye": "Missing lines with a function call",
+ "bug_type": "Incorrect data structure constant",
+ "bug_family": "missing_code",
+ "bug_type_note": "Python fix return [] -> return [[]]"
 }

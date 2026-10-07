@@ -74,6 +74,8 @@ def summarise(campaign_dir: Path, reference_policy: str = "strong_only") -> str:
                      f"{x['total_cost_usd']:.4f} | {cps} | {c_red} | {x['median_e2e_s']:.1f} | {x['median_api_s']:.1f} | "
                      f"{x['mean_calls']:.2f} | "
                      f"{esc} | {fa} | {x['input_tokens']}/{x['output_tokens']} |")
+    lines += ["", "Resolution by bug_family (task-averaged; descriptive only, 1-8 tasks per family):", ""]
+    lines += _family_table(by_pol, list(rows))
     lines += ["", "Status counts:"] + [f"- {p}: {x['statuses']}" for p, x in rows.items()]
     lines += ["", "Cost basis per model:"] + _cost_basis(campaign_dir)
     lines += ["", "Notes: resolution = valid output AND all visible AND all hidden tests pass. "
@@ -92,6 +94,25 @@ def summarise(campaign_dir: Path, reference_policy: str = "strong_only") -> str:
             w.writerow([t] + [f"{sum(r['resolved'] for r in by_pol[p] if r['task_id'] == t)}/"
                               f"{sum(1 for r in by_pol[p] if r['task_id'] == t)}" for p in rows])
     return text
+
+
+def _family_table(by_pol: dict, policies: list[str]) -> list[str]:
+    fam_tasks = defaultdict(set)
+    for rs in by_pol.values():
+        for r in rs:
+            fam_tasks[r.get("bug_family") or "unlabelled"].add(r["task_id"])
+    out = ["| Family | Tasks | " + " | ".join(policies) + " |", "|---|---|" + "---|" * len(policies)]
+    for fam in sorted(fam_tasks):
+        cells = []
+        for pol in policies:
+            per_task = defaultdict(list)
+            for r in by_pol[pol]:
+                if (r.get("bug_family") or "unlabelled") == fam:
+                    per_task[r["task_id"]].append(r["resolved"])
+            cells.append(f"{100 * statistics.mean(statistics.mean(v) for v in per_task.values()):.0f}%"
+                         if per_task else "–")
+        out.append(f"| {fam} | {len(fam_tasks[fam])} | " + " | ".join(cells) + " |")
+    return out
 
 
 def _cost_basis(campaign_dir: Path) -> list[str]:

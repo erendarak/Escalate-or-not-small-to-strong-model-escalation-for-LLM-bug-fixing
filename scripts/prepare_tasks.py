@@ -8,7 +8,14 @@ For each of the 31 Python programs that have JSON test cases:
   * reference.py    = QuixBugs correct program (private)
   * public cases    = up to 3 cases shown to the model, at least one of which the bug fails
   * hidden cases    = all remaining cases, never shown to the model
-Then the acceptance gate is applied and a dev/eval split is drawn with a fixed seed.
+Then the acceptance gate is applied and a dev/eval split is drawn with a fixed seed,
+stratified by bug_family (one dev task per family, the rest eval).
+
+Bug labels: bug_type_ye is the per-program label from Ye et al., "A Comprehensive
+Study of Automatic Program Repair on the QuixBugs Benchmark", JSS 2021,
+arXiv:1805.03454, Table 1 (labelled on the Java versions). 22 are used as-is;
+9 are adapted to the Python buggy->correct diff (bug_type differs, bug_type_note
+says why). bug_family groups the types into 5 coarse families for analysis.
 """
 from __future__ import annotations
 
@@ -30,6 +37,70 @@ SLOW = {
     "levenshtein": lambda inp: inp[0] == "amanaplanacanalpanama",
 }
 TOLERANCE = {"sqrt": lambda inp: inp[-1]}  # sqrt(x, epsilon): compare within epsilon
+
+# Ye et al. bug type -> coarse family (fixed before any eval run).
+FAMILY_OF_YE_TYPE = {
+    "Missing '+1'": "boundary", "Missing '-1'": "boundary", "Incorrect array slice": "boundary",
+    "Incorrect comparison operator": "operator", "Incorrect logical operator": "operator",
+    "Incorrect arithmetic expression": "operator", "Incorrect method called": "operator",
+    "Reference to an incorrect variable": "variable", "Expression swap": "variable",
+    "Missing boolean expression": "condition", "Missing logic": "condition", "Other code replacement": "condition",
+    "Missing function call": "missing_code", "Missing lines with a function call": "missing_code",
+    "Wrong constructor call": "missing_code",
+}
+
+# Per-program label from Ye et al. Table 1.
+YE_TYPE = {
+    "bitcount": "Incorrect logical operator", "bucketsort": "Reference to an incorrect variable",
+    "find_first_in_sorted": "Incorrect comparison operator", "find_in_sorted": "Missing '+1'",
+    "flatten": "Missing function call", "gcd": "Expression swap", "get_factors": "Wrong constructor call",
+    "hanoi": "Reference to an incorrect variable", "is_valid_parenthesization": "Other code replacement",
+    "kheapsort": "Missing function call", "knapsack": "Incorrect comparison operator",
+    "kth": "Reference to an incorrect variable", "lcs_length": "Incorrect array slice",
+    "levenshtein": "Missing '+1'", "lis": "Missing logic", "longest_common_subsequence": "Missing function call",
+    "max_sublist_sum": "Missing function call", "mergesort": "Incorrect arithmetic expression",
+    "next_palindrome": "Missing '-1'", "next_permutation": "Incorrect comparison operator",
+    "pascal": "Missing '+1'", "possible_change": "Missing boolean expression", "powerset": "Missing logic",
+    "quicksort": "Incorrect comparison operator", "rpn_eval": "Expression swap",
+    "shunting_yard": "Missing lines with a function call", "sieve": "Incorrect method called",
+    "sqrt": "Incorrect arithmetic expression", "subsequences": "Missing lines with a function call",
+    "to_base": "Expression swap", "wrap": "Missing lines with a function call",
+}
+
+# Rows where the Java-based label does not fit the Python diff: (bug_type, bug_family, note).
+PYTHON_ADAPTED = {
+    "lcs_length": ("Incorrect array index", "boundary",
+                   "Python fix dp[i-1, j] -> dp[i-1, j-1]; Ye cell also shows a wrapped 'Missing boolean expression'"),
+    "flatten": ("Extra function call", "operator", "Python fix removes the call: yield flatten(x) -> yield x"),
+    "levenshtein": ("Added '+1'", "boundary", "Python fix removes '1 +'"),
+    "kheapsort": ("Missing array slice", "boundary", "Java fix is subList(); Python fix is arr -> arr[k:]"),
+    "longest_common_subsequence": ("Missing array slice", "boundary",
+                                   "Java fix is substring(); Python fix is b -> b[1:]"),
+    "subsequences": ("Incorrect data structure constant", "missing_code", "Python fix return [] -> return [[]]"),
+    "get_factors": ("Incorrect data structure constant", "missing_code", "Python fix return [] -> return [n]"),
+    "kth": ("Incorrect argument value", "variable", "Python fix passes k - num_lessoreq instead of k"),
+    "mergesort": ("Incorrect boundary condition", "boundary", "Python fix len(arr) == 0 -> len(arr) <= 1"),
+}
+
+
+def labels(name: str) -> dict:
+    ye = YE_TYPE[name]
+    if name in PYTHON_ADAPTED:
+        bug_type, family, note = PYTHON_ADAPTED[name]
+        return {"bug_type_ye": ye, "bug_type": bug_type, "bug_family": family, "bug_type_note": note}
+    return {"bug_type_ye": ye, "bug_type": ye, "bug_family": FAMILY_OF_YE_TYPE[ye]}
+
+
+def stratified_dev(names: list[str], seed: int, per_family: int) -> set[str]:
+    """Pick `per_family` dev tasks from every bug_family with a fixed seed; the rest are eval."""
+    rng = random.Random(seed)
+    by_family = {}
+    for n in sorted(names):
+        by_family.setdefault(labels(n)["bug_family"], []).append(n)
+    dev = set()
+    for family in sorted(by_family):
+        dev.update(rng.sample(by_family[family], per_family))
+    return dev
 
 
 def load_cases(qb: Path, name: str) -> list[dict]:
@@ -57,7 +128,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--quixbugs", type=Path, required=True)
     ap.add_argument("--out", type=Path, default=ROOT / "data")
-    ap.add_argument("--n-dev", type=int, default=6)
+    ap.add_argument("--dev-per-family", type=int, default=1)
     ap.add_argument("--seed", type=int, default=2026)
     ap.add_argument("--max-public", type=int, default=3)
     args = ap.parse_args()
@@ -99,10 +170,7 @@ def main():
         if ok:
             accepted.append((name, buggy, ref, [cases[i] for i in pub_idx], [cases[i] for i in hid_idx]))
 
-    rng = random.Random(args.seed)
-    order = [a[0] for a in accepted]
-    rng.shuffle(order)
-    dev = set(order[: args.n_dev])
+    dev = stratified_dev([a[0] for a in accepted], args.seed, args.dev_per_family)
 
     for sub in ("public", "private"):
         shutil.rmtree(args.out / sub, ignore_errors=True)
@@ -113,14 +181,19 @@ def main():
         pd.mkdir(parents=True); vd.mkdir(parents=True)
         (pd / "buggy.py").write_text(buggy, encoding="utf-8")
         (pd / "public_cases.json").write_text(json.dumps(pub, indent=1), encoding="utf-8")
+        # Labels live in meta.json for analysis only; prompts never read them (tests check this).
         (pd / "meta.json").write_text(json.dumps({"task_id": name, "func_name": name, "split": split,
-                                                  "source": "QuixBugs"}, indent=1), encoding="utf-8")
+                                                  "source": "QuixBugs", **labels(name)}, indent=1), encoding="utf-8")
         (vd / "reference.py").write_text(ref, encoding="utf-8")
         (vd / "hidden_cases.json").write_text(json.dumps(hid, indent=1), encoding="utf-8")
-        manifest.append({"task_id": name, "split": split, "buggy_sha": sha(buggy), "reference_sha": sha(ref),
+        manifest.append({"task_id": name, "split": split, "bug_family": labels(name)["bug_family"],
+                         "buggy_sha": sha(buggy), "reference_sha": sha(ref),
                          "n_public": len(pub), "n_hidden": len(hid)})
 
-    (args.out / "manifest.json").write_text(json.dumps({"seed": args.seed, "tasks": manifest}, indent=1), encoding="utf-8")
+    (args.out / "manifest.json").write_text(json.dumps(
+        {"seed": args.seed, "split_method": f"stratified by bug_family, {args.dev_per_family} dev task(s) per family",
+         "label_source": "Ye et al., JSS 2021, arXiv:1805.03454, Table 1 (9 rows adapted to Python, see bug_type_note)",
+         "tasks": manifest}, indent=1), encoding="utf-8")
     (args.out / "gate_report.json").write_text(json.dumps(report, indent=1), encoding="utf-8")
     n_dev = sum(m["split"] == "dev" for m in manifest)
     print(f"\nAccepted {len(accepted)}/{len(names)} tasks -> dev={n_dev}, eval={len(manifest) - n_dev}")

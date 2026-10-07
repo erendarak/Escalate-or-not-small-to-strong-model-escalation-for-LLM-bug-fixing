@@ -41,6 +41,12 @@ def list_tasks(data_dir: Path, split: str | None = None) -> list[str]:
     return ids
 
 
+def load_labels(data_dir: Path, task_id: str) -> dict:
+    """Bug labels for ANALYSIS only (never passed to prompts; tests check this)."""
+    meta = _read_json(data_dir / "public" / task_id / "meta.json")
+    return {k: meta.get(k) for k in ("bug_type", "bug_family")}
+
+
 def load_public(data_dir: Path, task_id: str) -> PublicTask:
     d = data_dir / "public" / task_id
     meta = _read_json(d / "meta.json")

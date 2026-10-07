@@ -1,9 +1,12 @@
 {
  "seed": 2026,
+ "split_method": "stratified by bug_family, 1 dev task(s) per family",
+ "label_source": "Ye et al., JSS 2021, arXiv:1805.03454, Table 1 (9 rows adapted to Python, see bug_type_note)",
  "tasks": [
   {
    "task_id": "bitcount",
    "split": "eval",
+   "bug_family": "operator",
    "buggy_sha": "585fc5e7140a87d6",
    "reference_sha": "debc7dc00e3084e1",
    "n_public": 3,
@@ -12,6 +15,7 @@
   {
    "task_id": "bucketsort",
    "split": "eval",
+   "bug_family": "variable",
    "buggy_sha": "1cc4197c2ee524ec",
    "reference_sha": "a83473634c9a9bf4",
    "n_public": 2,
@@ -20,6 +24,7 @@
   {
    "task_id": "find_first_in_sorted",
    "split": "dev",
+   "bug_family": "operator",
    "buggy_sha": "59bdf7033f9b0f0f",
    "reference_sha": "815d382f87c7ccc2",
    "n_public": 2,
@@ -28,6 +33,7 @@
   {
    "task_id": "find_in_sorted",
    "split": "eval",
+   "bug_family": "boundary",
    "buggy_sha": "b640b4bcb1b2c0f7",
    "reference_sha": "cce13769543e2972",
    "n_public": 2,
@@ -36,6 +42,7 @@
   {
    "task_id": "flatten",
    "split": "eval",
+   "bug_family": "operator",
    "buggy_sha": "5023275fe603f1eb",
    "reference_sha": "9a81d65b8147aa84",
    "n_public": 2,
@@ -44,6 +51,7 @@
   {
    "task_id": "gcd",
    "split": "dev",
+   "bug_family": "variable",
    "buggy_sha": "d68e155c2af40d78",
    "reference_sha": "68ed345fa14c13fa",
    "n_public": 2,
@@ -52,6 +60,7 @@
   {
    "task_id": "get_factors",
    "split": "eval",
+   "bug_family": "missing_code",
    "buggy_sha": "7eff7ef2adbb2661",
    "reference_sha": "a2cd419152aa9262",
    "n_public": 3,
@@ -60,6 +69,7 @@
   {
    "task_id": "hanoi",
    "split": "eval",
+   "bug_family": "variable",
    "buggy_sha": "edd1ceeb79b556a6",
    "reference_sha": "1774236aad5689bc",
    "n_public": 2,
@@ -67,7 +77,8 @@
   },
   {
    "task_id": "is_valid_parenthesization",
-   "split": "dev",
+   "split": "eval",
+   "bug_family": "condition",
    "buggy_sha": "2340cddfce49b055",
    "reference_sha": "77d7131ce9cadd98",
    "n_public": 1,
@@ -75,7 +86,8 @@
   },
   {
    "task_id": "kheapsort",
-   "split": "eval",
+   "split": "dev",
+   "bug_family": "boundary",
    "buggy_sha": "0cabf3d462d941ec",
    "reference_sha": "f97bce3d8b0a390c",
    "n_public": 1,
@@ -84,6 +96,7 @@
   {
    "task_id": "knapsack",
    "split": "eval",
+   "bug_family": "operator",
    "buggy_sha": "ce8ab048641f73e8",
    "reference_sha": "eb77641ea54529f0",
    "n_public": 3,
@@ -92,6 +105,7 @@
   {
    "task_id": "kth",
    "split": "eval",
+   "bug_family": "variable",
    "buggy_sha": "505b7d8079de3517",
    "reference_sha": "1a744253b219bf9f",
    "n_public": 2,
@@ -100,6 +114,7 @@
   {
    "task_id": "lcs_length",
    "split": "eval",
+   "bug_family": "boundary",
    "buggy_sha": "ab35b03aa2460134",
    "reference_sha": "c0c66a9a499e7581",
    "n_public": 3,
@@ -108,6 +123,7 @@
   {
    "task_id": "levenshtein",
    "split": "eval",
+   "bug_family": "boundary",
    "buggy_sha": "55f92da7c06a1eb1",
    "reference_sha": "9c44bb70893dbce0",
    "n_public": 2,
@@ -116,6 +132,7 @@
   {
    "task_id": "lis",
    "split": "eval",
+   "bug_family": "condition",
    "buggy_sha": "fe9e751f62674299",
    "reference_sha": "f2f14efdb6b41959",
    "n_public": 3,
@@ -124,6 +141,7 @@
   {
    "task_id": "longest_common_subsequence",
    "split": "eval",
+   "bug_family": "boundary",
    "buggy_sha": "93215319e44f8955",
    "reference_sha": "e59ea6754bc515a1",
    "n_public": 3,
@@ -132,6 +150,7 @@
   {
    "task_id": "max_sublist_sum",
    "split": "eval",
+   "bug_family": "missing_code",
    "buggy_sha": "aab26d9f3984f177",
    "reference_sha": "2f2b119d49fbbe64",
    "n_public": 2,
@@ -140,6 +159,7 @@
   {
    "task_id": "mergesort",
    "split": "eval",
+   "bug_family": "boundary",
    "buggy_sha": "9e1911f1da8b7535",
    "reference_sha": "f4b64e3c49b0a050",
    "n_public": 3,
@@ -148,6 +168,7 @@
   {
    "task_id": "next_palindrome",
    "split": "eval",
+   "bug_family": "boundary",
    "buggy_sha": "e383f403abe2f85f",
    "reference_sha": "6b5b1d10c30ff927",
    "n_public": 1,
@@ -156,6 +177,7 @@
   {
    "task_id": "next_permutation",
    "split": "eval",
+   "bug_family": "operator",
    "buggy_sha": "14ffc36c80bf3bba",
    "reference_sha": "93bbb04ed299c44c",
    "n_public": 2,
@@ -164,6 +186,7 @@
   {
    "task_id": "pascal",
    "split": "eval",
+   "bug_family": "boundary",
    "buggy_sha": "4445ef075a5f987d",
    "reference_sha": "96b7da947feab99e",
    "n_public": 1,
@@ -171,7 +194,8 @@
   },
   {
    "task_id": "possible_change",
-   "split": "eval",
+   "split": "dev",
+   "bug_family": "condition",
    "buggy_sha": "e21854dbb1a8f299",
    "reference_sha": "195f5cdc05e838b4",
    "n_public": 3,
@@ -180,6 +204,7 @@
   {
    "task_id": "powerset",
    "split": "eval",
+   "bug_family": "condition",
    "buggy_sha": "3e3deb045ed61fbe",
    "reference_sha": "b53f71a04fec20cb",
    "n_public": 1,
@@ -188,6 +213,7 @@
   {
    "task_id": "quicksort",
    "split": "eval",
+   "bug_family": "operator",
    "buggy_sha": "4bc023d77dcdaeaa",
    "reference_sha": "2b9aa475d442ab53",
    "n_public": 3,
@@ -196,6 +222,7 @@
   {
    "task_id": "rpn_eval",
    "split": "eval",
+   "bug_family": "variable",
    "buggy_sha": "4a473b1beaa9eb81",
    "reference_sha": "a5f9ec92795e5703",
    "n_public": 2,
@@ -203,7 +230,8 @@
   },
   {
    "task_id": "shunting_yard",
-   "split": "dev",
+   "split": "eval",
+   "bug_family": "missing_code",
    "buggy_sha": "b010f04bbfc61588",
    "reference_sha": "f24efd158ead068c",
    "n_public": 2,
@@ -211,7 +239,8 @@
   },
   {
    "task_id": "sieve",
-   "split": "dev",
+   "split": "eval",
+   "bug_family": "operator",
    "buggy_sha": "577f762267c71617",
    "reference_sha": "624b6480828391cd",
    "n_public": 2,
@@ -220,6 +249,7 @@
   {
    "task_id": "sqrt",
    "split": "eval",
+   "bug_family": "operator",
    "buggy_sha": "e3623a160e6ada45",
    "reference_sha": "8abad14937a9cd1c",
    "n_public": 2,
@@ -228,6 +258,7 @@
   {
    "task_id": "subsequences",
    "split": "eval",
+   "bug_family": "missing_code",
    "buggy_sha": "0566273a521b768c",
    "reference_sha": "cc04b2d74db77bdd",
    "n_public": 3,
@@ -235,7 +266,8 @@
   },
   {
    "task_id": "to_base",
-   "split": "dev",
+   "split": "eval",
+   "bug_family": "variable",
    "buggy_sha": "e6f2d42474e4e641",
    "reference_sha": "bebdb1310d6db389",
    "n_public": 3,
@@ -243,7 +275,8 @@
   },
   {
    "task_id": "wrap",
-   "split": "eval",
+   "split": "dev",
+   "bug_family": "missing_code",
    "buggy_sha": "0dc3363df6fc8fff",
    "reference_sha": "19dba14cdf9fe338",
    "n_public": 1,

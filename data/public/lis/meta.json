@@ -2,5 +2,8 @@
  "task_id": "lis",
  "func_name": "lis",
  "split": "eval",
- "source": "QuixBugs"
+ "source": "QuixBugs",
+ "bug_type_ye": "Missing logic",
+ "bug_type": "Missing logic",
+ "bug_family": "condition"
 }

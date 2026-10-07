@@ -2,5 +2,8 @@
  "task_id": "bitcount",
  "func_name": "bitcount",
  "split": "eval",
- "source": "QuixBugs"
+ "source": "QuixBugs",
+ "bug_type_ye": "Incorrect logical operator",
+ "bug_type": "Incorrect logical operator",
+ "bug_family": "operator"
 }

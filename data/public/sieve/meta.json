@@ -1,6 +1,9 @@
 {
  "task_id": "sieve",
  "func_name": "sieve",
- "split": "dev",
- "source": "QuixBugs"
+ "split": "eval",
+ "source": "QuixBugs",
+ "bug_type_ye": "Incorrect method called",
+ "bug_type": "Incorrect method called",
+ "bug_family": "operator"
 }

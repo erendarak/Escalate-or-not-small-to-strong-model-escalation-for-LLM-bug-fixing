@@ -2,5 +2,9 @@
  "task_id": "get_factors",
  "func_name": "get_factors",
  "split": "eval",
- "source": "QuixBugs"
+ "source": "QuixBugs",
+ "bug_type_ye": "Wrong constructor call",
+ "bug_type": "Incorrect data structure constant",
+ "bug_family": "missing_code",
+ "bug_type_note": "Python fix return [] -> return [n]"
 }

@@ -1,6 +1,9 @@
 {
  "task_id": "possible_change",
  "func_name": "possible_change",
- "split": "eval",
- "source": "QuixBugs"
+ "split": "dev",
+ "source": "QuixBugs",
+ "bug_type_ye": "Missing boolean expression",
+ "bug_type": "Missing boolean expression",
+ "bug_family": "condition"
 }

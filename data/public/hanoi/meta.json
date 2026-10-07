@@ -2,5 +2,8 @@
  "task_id": "hanoi",
  "func_name": "hanoi",
  "split": "eval",
- "source": "QuixBugs"
+ "source": "QuixBugs",
+ "bug_type_ye": "Reference to an incorrect variable",
+ "bug_type": "Reference to an incorrect variable",
+ "bug_family": "variable"
 }

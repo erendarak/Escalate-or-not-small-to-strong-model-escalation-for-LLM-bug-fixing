@@ -2,5 +2,9 @@
  "task_id": "flatten",
  "func_name": "flatten",
  "split": "eval",
- "source": "QuixBugs"
+ "source": "QuixBugs",
+ "bug_type_ye": "Missing function call",
+ "bug_type": "Extra function call",
+ "bug_family": "operator",
+ "bug_type_note": "Python fix removes the call: yield flatten(x) -> yield x"
 }

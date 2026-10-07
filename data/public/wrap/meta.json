@@ -1,6 +1,9 @@
 {
  "task_id": "wrap",
  "func_name": "wrap",
- "split": "eval",
- "source": "QuixBugs"
+ "split": "dev",
+ "source": "QuixBugs",
+ "bug_type_ye": "Missing lines with a function call",
+ "bug_type": "Missing lines with a function call",
+ "bug_family": "missing_code"
 }

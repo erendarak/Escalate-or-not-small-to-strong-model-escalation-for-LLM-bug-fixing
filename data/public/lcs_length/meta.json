@@ -2,5 +2,9 @@
  "task_id": "lcs_length",
  "func_name": "lcs_length",
  "split": "eval",
- "source": "QuixBugs"
+ "source": "QuixBugs",
+ "bug_type_ye": "Incorrect array slice",
+ "bug_type": "Incorrect array index",
+ "bug_family": "boundary",
+ "bug_type_note": "Python fix dp[i-1, j] -> dp[i-1, j-1]; Ye cell also shows a wrapped 'Missing boolean expression'"
 }

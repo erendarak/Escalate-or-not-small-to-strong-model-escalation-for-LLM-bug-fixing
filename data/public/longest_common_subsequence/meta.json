@@ -2,5 +2,9 @@
  "task_id": "longest_common_subsequence",
  "func_name": "longest_common_subsequence",
  "split": "eval",
- "source": "QuixBugs"
+ "source": "QuixBugs",
+ "bug_type_ye": "Missing function call",
+ "bug_type": "Missing array slice",
+ "bug_family": "boundary",
+ "bug_type_note": "Java fix is substring(); Python fix is b -> b[1:]"
 }

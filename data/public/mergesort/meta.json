@@ -2,5 +2,9 @@
  "task_id": "mergesort",
  "func_name": "mergesort",
  "split": "eval",
- "source": "QuixBugs"
+ "source": "QuixBugs",
+ "bug_type_ye": "Incorrect arithmetic expression",
+ "bug_type": "Incorrect boundary condition",
+ "bug_family": "boundary",
+ "bug_type_note": "Python fix len(arr) == 0 -> len(arr) <= 1"
 }

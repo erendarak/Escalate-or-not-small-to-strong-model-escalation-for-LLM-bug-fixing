@@ -1,0 +1,6 @@
+{
+ "task_id": "bucketsort",
+ "func_name": "bucketsort",
+ "split": "eval",
+ "source": "QuixBugs"
+}

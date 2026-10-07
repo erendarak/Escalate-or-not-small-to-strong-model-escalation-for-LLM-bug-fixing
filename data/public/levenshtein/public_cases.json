@@ -1,0 +1,16 @@
+[
+ {
+  "input": [
+   "electron",
+   "neutron"
+  ],
+  "expected": 3
+ },
+ {
+  "input": [
+   "",
+   ""
+  ],
+  "expected": 0
+ }
+]

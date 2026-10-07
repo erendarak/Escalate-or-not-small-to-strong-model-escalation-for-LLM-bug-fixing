@@ -1,0 +1,6 @@
+{
+ "task_id": "quicksort",
+ "func_name": "quicksort",
+ "split": "eval",
+ "source": "QuixBugs"
+}

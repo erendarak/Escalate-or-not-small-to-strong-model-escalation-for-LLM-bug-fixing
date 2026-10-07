@@ -1,0 +1,6 @@
+{
+ "task_id": "find_first_in_sorted",
+ "func_name": "find_first_in_sorted",
+ "split": "dev",
+ "source": "QuixBugs"
+}

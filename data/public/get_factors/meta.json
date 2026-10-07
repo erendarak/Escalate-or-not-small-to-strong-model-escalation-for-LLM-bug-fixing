@@ -1,0 +1,6 @@
+{
+ "task_id": "get_factors",
+ "func_name": "get_factors",
+ "split": "eval",
+ "source": "QuixBugs"
+}

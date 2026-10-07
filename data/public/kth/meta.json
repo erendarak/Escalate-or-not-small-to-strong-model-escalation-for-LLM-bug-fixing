@@ -1,0 +1,6 @@
+{
+ "task_id": "kth",
+ "func_name": "kth",
+ "split": "eval",
+ "source": "QuixBugs"
+}

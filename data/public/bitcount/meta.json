@@ -1,0 +1,6 @@
+{
+ "task_id": "bitcount",
+ "func_name": "bitcount",
+ "split": "eval",
+ "source": "QuixBugs"
+}

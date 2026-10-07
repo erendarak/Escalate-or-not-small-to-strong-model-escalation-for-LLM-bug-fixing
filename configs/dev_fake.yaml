@@ -1,0 +1,17 @@
+# Plumbing check: no model, no network, no cost.
+# "echo" always returns the bug unchanged (a hopeless small model),
+# "oracle" returns the reference fix (a perfect strong model, TEST ONLY - it reads private data).
+# Expected: small_only 0%, strong_only 100% with 1 call, escalate 100% with 2 calls & 100% escalation.
+campaign: dev_fake
+split: dev
+repeats: 1
+seed: 0
+test_timeout_s: 3
+budget_usd: 1.0
+models:
+  small:  {kind: fake, model: echo,   usd_per_1m_input: 0.1, usd_per_1m_output: 0.4}
+  strong: {kind: fake, model: oracle, usd_per_1m_input: 3.0, usd_per_1m_output: 15.0, hosting: api}
+policies:
+  small_only:  [small, small]
+  strong_only: [strong, strong]
+  escalate:    [small, strong]

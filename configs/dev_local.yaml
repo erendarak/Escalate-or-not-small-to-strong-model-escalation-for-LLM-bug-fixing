@@ -1,0 +1,25 @@
+# Dev campaign with two LOCAL models served by Ollama (free, runs on your RTX 4070 laptop).
+# Tune the prompt / timeouts here. Do NOT look at eval tasks while tuning.
+#   ollama pull qwen2.5-coder:1.5b
+#   ollama pull qwen2.5-coder:7b
+campaign: dev_local_v1
+split: dev
+repeats: 1
+seed: 0
+test_timeout_s: 3
+budget_usd: 0          # 0 = no paid models in this config
+models:
+  small:
+    kind: openai_compat
+    model: qwen2.5-coder:1.5b
+    base_url: http://localhost:11434/v1
+    extra: {seed: 0}
+  strong:            # "medium" tier in BT's wording; a frontier API model comes later
+    kind: openai_compat
+    model: qwen2.5-coder:7b
+    base_url: http://localhost:11434/v1
+    extra: {seed: 0}
+policies:
+  small_only:  [small, small]
+  strong_only: [strong, strong]
+  escalate:    [small, strong]

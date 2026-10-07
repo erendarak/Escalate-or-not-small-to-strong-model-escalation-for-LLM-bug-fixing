@@ -1,0 +1,6 @@
+{
+ "task_id": "next_permutation",
+ "func_name": "next_permutation",
+ "split": "eval",
+ "source": "QuixBugs"
+}

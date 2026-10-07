@@ -1,0 +1,6 @@
+{
+ "task_id": "pascal",
+ "func_name": "pascal",
+ "split": "eval",
+ "source": "QuixBugs"
+}

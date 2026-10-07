@@ -1,0 +1,6 @@
+{
+ "task_id": "next_palindrome",
+ "func_name": "next_palindrome",
+ "split": "eval",
+ "source": "QuixBugs"
+}

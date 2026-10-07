@@ -1,0 +1,30 @@
+[
+ {
+  "input": [
+   "kitten",
+   "sitting"
+  ],
+  "expected": 3
+ },
+ {
+  "input": [
+   "rosettacode",
+   "raisethysword"
+  ],
+  "expected": 8
+ },
+ {
+  "input": [
+   "abcdefg",
+   "gabcdef"
+  ],
+  "expected": 2
+ },
+ {
+  "input": [
+   "hello",
+   "olleh"
+  ],
+  "expected": 4
+ }
+]

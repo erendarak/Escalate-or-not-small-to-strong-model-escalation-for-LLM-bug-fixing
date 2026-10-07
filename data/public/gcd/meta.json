@@ -1,0 +1,6 @@
+{
+ "task_id": "gcd",
+ "func_name": "gcd",
+ "split": "dev",
+ "source": "QuixBugs"
+}

@@ -1,0 +1,14 @@
+[
+ {
+  "input": [
+   "((()()))()"
+  ],
+  "expected": true
+ },
+ {
+  "input": [
+   ")()("
+  ],
+  "expected": false
+ }
+]

@@ -1,0 +1,6 @@
+{
+ "task_id": "flatten",
+ "func_name": "flatten",
+ "split": "eval",
+ "source": "QuixBugs"
+}

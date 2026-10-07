@@ -1,0 +1,6 @@
+{
+ "task_id": "find_in_sorted",
+ "func_name": "find_in_sorted",
+ "split": "eval",
+ "source": "QuixBugs"
+}

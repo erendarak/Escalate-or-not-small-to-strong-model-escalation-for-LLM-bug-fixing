@@ -1,0 +1,6 @@
+{
+ "task_id": "hanoi",
+ "func_name": "hanoi",
+ "split": "eval",
+ "source": "QuixBugs"
+}

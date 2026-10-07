@@ -1,0 +1,6 @@
+{
+ "task_id": "mergesort",
+ "func_name": "mergesort",
+ "split": "eval",
+ "source": "QuixBugs"
+}

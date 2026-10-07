@@ -1,0 +1,6 @@
+{
+ "task_id": "is_valid_parenthesization",
+ "func_name": "is_valid_parenthesization",
+ "split": "dev",
+ "source": "QuixBugs"
+}

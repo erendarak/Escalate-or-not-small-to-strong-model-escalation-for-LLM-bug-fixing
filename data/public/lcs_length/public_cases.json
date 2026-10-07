@@ -1,0 +1,23 @@
+[
+ {
+  "input": [
+   "witch",
+   "sandwich"
+  ],
+  "expected": 2
+ },
+ {
+  "input": [
+   "meow",
+   "homeowner"
+  ],
+  "expected": 4
+ },
+ {
+  "input": [
+   "fun",
+   ""
+  ],
+  "expected": 0
+ }
+]

@@ -1,0 +1,6 @@
+{
+ "task_id": "powerset",
+ "func_name": "powerset",
+ "split": "eval",
+ "source": "QuixBugs"
+}

@@ -1,0 +1,6 @@
+{
+ "task_id": "max_sublist_sum",
+ "func_name": "max_sublist_sum",
+ "split": "eval",
+ "source": "QuixBugs"
+}

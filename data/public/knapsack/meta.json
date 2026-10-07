@@ -1,0 +1,6 @@
+{
+ "task_id": "knapsack",
+ "func_name": "knapsack",
+ "split": "eval",
+ "source": "QuixBugs"
+}

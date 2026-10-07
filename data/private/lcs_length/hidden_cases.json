@@ -1,0 +1,44 @@
+[
+ {
+  "input": [
+   "fun",
+   "function"
+  ],
+  "expected": 3
+ },
+ {
+  "input": [
+   "cyborg",
+   "cyber"
+  ],
+  "expected": 3
+ },
+ {
+  "input": [
+   "physics",
+   "physics"
+  ],
+  "expected": 7
+ },
+ {
+  "input": [
+   "space age",
+   "pace a"
+  ],
+  "expected": 6
+ },
+ {
+  "input": [
+   "flippy",
+   "floppy"
+  ],
+  "expected": 3
+ },
+ {
+  "input": [
+   "acbdegcedbg",
+   "begcfeubk"
+  ],
+  "expected": 3
+ }
+]

@@ -1,0 +1,6 @@
+{
+ "task_id": "lis",
+ "func_name": "lis",
+ "split": "eval",
+ "source": "QuixBugs"
+}

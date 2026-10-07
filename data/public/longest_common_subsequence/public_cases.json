@@ -1,0 +1,23 @@
+[
+ {
+  "input": [
+   "headache",
+   "pentadactyl"
+  ],
+  "expected": "eadac"
+ },
+ {
+  "input": [
+   "daenarys",
+   "targaryen"
+  ],
+  "expected": "aary"
+ },
+ {
+  "input": [
+   "thisisatest",
+   "testing123testing"
+  ],
+  "expected": "tsitest"
+ }
+]

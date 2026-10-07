@@ -10,7 +10,7 @@ from pathlib import Path
 
 import pytest
 
-from routing_pilot.candidate import build_candidate
+from routing_pilot.candidate import build_candidate, code_lines_changed
 from routing_pilot.config import ROOT, load_config
 from routing_pilot.experiment import Store, run_campaign, run_one
 from routing_pilot.models import InfraError, ModelResponse, ModelSpec, OpenAICompatClient
@@ -178,3 +178,15 @@ def test_every_task_is_labelled_and_every_family_is_in_dev():
     assert all(("bug_type_note" in m) == (m["bug_type"] != m["bug_type_ye"]) for m in metas)
     families = {m["bug_family"] for m in metas}
     assert families == {m["bug_family"] for m in metas if m["split"] == "dev"}
+
+
+def test_lines_changed_counts_code_only():
+    buggy = load_public(ROOT / "data", TASK).buggy_code
+    ref = load_private(ROOT / "data", TASK).reference_code
+    fix = code_lines_changed(buggy, ref)
+    assert fix == 2   # gcd: one line replaced = 1 removed + 1 added
+    no_doc = ("def gcd(a, b):\n    if b == 0:\n        return a\n"
+              "    else:\n        return gcd(b, a % b)  # fixed\n")
+    cand = build_candidate(code(no_doc), "gcd", buggy)
+    assert cand.lines_changed == fix and cand.lines_changed_raw > 10   # docstring/comment loss not counted
+    assert build_candidate(code(buggy), "gcd", buggy).lines_changed == 0

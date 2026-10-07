@@ -26,7 +26,8 @@ class Candidate:
     valid: bool
     code: str | None
     reason: str | None = None   # why invalid
-    lines_changed: int = 0
+    lines_changed: int = 0      # code only: docstrings, comments and formatting ignored
+    lines_changed_raw: int = 0  # plain text diff, kept for comparison
 
 
 def extract_code(text: str) -> str | None:
@@ -50,6 +51,35 @@ def check_safety(tree: ast.AST) -> str | None:
     return None
 
 
+def _diff_count(a: str, b: str) -> int:
+    diff = difflib.unified_diff(a.splitlines(), b.splitlines(), lineterm="", n=0)
+    return sum(1 for l in diff if l[:1] in "+-" and not l.startswith(("+++", "---")))
+
+
+def _is_bare_string(stmt: ast.stmt) -> bool:
+    return isinstance(stmt, ast.Expr) and isinstance(stmt.value, ast.Constant) and isinstance(stmt.value.value, str)
+
+
+def code_only(tree: ast.AST) -> str:
+    """Normalised source: ast.unparse drops comments/formatting; bare string statements
+    (docstrings, and the description block QuixBugs places after each function) are removed.
+
+    Models often drop or rewrite that text while fixing one line, which would
+    otherwise make a one-line fix look like a 20-line patch.
+    """
+    for node in ast.walk(tree):
+        for name in ("body", "orelse", "finalbody"):
+            stmts = getattr(node, name, None)
+            if isinstance(stmts, list) and stmts and isinstance(stmts[0], ast.stmt):
+                kept = [st for st in stmts if not _is_bare_string(st)]
+                setattr(node, name, kept or ([ast.Pass()] if not isinstance(node, ast.Module) else []))
+    return ast.unparse(tree)
+
+
+def code_lines_changed(original_code: str, code: str) -> int:
+    return _diff_count(code_only(ast.parse(original_code)), code_only(ast.parse(code)))
+
+
 def build_candidate(response_text: str, func_name: str, original_code: str) -> Candidate:
     code = extract_code(response_text)
     if code is None:
@@ -63,6 +93,4 @@ def build_candidate(response_text: str, func_name: str, original_code: str) -> C
     unsafe = check_safety(tree)
     if unsafe:
         return Candidate(False, code, unsafe)
-    diff = difflib.unified_diff(original_code.splitlines(), code.splitlines(), lineterm="", n=0)
-    changed = sum(1 for l in diff if l[:1] in "+-" and not l.startswith(("+++", "---")))
-    return Candidate(True, code, None, changed)
+    return Candidate(True, code, None, code_lines_changed(original_code, code), _diff_count(original_code, code))

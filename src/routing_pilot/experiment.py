@@ -144,7 +144,8 @@ def run_one(cfg: Config, clients: dict, store: Store, task_id: str, policy: str,
             prompt_hash=_h(prompt_text), response_hash=_h(resp.text), candidate_hash=_h(cand.code),
             input_tokens=resp.input_tokens, output_tokens=resp.output_tokens, latency_s=round(resp.latency_s, 3),
             cost_usd=resp.cost_usd, transport_retries=n_retries, candidate_valid=cand.valid,
-            invalid_reason=cand.reason, lines_changed=cand.lines_changed, public_status=public_status,
+            invalid_reason=cand.reason, lines_changed=cand.lines_changed,
+            lines_changed_raw=cand.lines_changed_raw, public_status=public_status,
             public_pass=pub.n_pass if pub else 0, public_total=len(task.public_cases)))
 
         if infra or public_status == "pass":

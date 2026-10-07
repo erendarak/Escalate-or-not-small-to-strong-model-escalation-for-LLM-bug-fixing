@@ -1,6 +1,6 @@
 """Turn a model response into a candidate program, or a clear rejection reason.
 
-Design choice (deviation from the original plan): models return the FULL
+Design choice: models return the FULL
 corrected file in one ```python block instead of a unified diff. Small local
 models produce malformed diffs very often, which would measure diff-formatting
 skill rather than repair skill. Every model gets the same format, so the

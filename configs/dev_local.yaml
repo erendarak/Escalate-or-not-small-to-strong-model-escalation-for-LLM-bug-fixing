@@ -19,7 +19,7 @@ models:
     usd_per_1m_output: 0.1
     base_url: http://localhost:11434/v1
     temperature: 0.2
-  strong:            # "medium" tier in BT's wording; a frontier API model comes later
+  strong:
     kind: openai_compat
     model: qwen2.5-coder:7b
     # Standardized list-price ESTIMATE (not billed: runs locally). Fireworks AI serverless size tier

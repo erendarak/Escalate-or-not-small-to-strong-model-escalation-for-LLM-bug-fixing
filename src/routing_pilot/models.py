@@ -40,7 +40,7 @@ class ModelSpec:
     usd_per_1m_output: float = 0.0
     temperature: float = 0.0
     max_tokens: int = 1500
-    extra: dict = field(default_factory=dict)   # e.g. {"seed": 0}
+    extra: dict = field(default_factory=dict)   # extra API parameters; the seed is set per call by the runner
     hosting: str = "local"   # local | api  (for reporting)
 
 

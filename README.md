@@ -1,85 +1,154 @@
-# Routing Pilot: small → strong model escalation for LLM bug-fixing agents
+# Routing pilot: small-to-strong model escalation for LLM bug fixing
 
-*Independent pilot study. Not commissioned, reviewed or endorsed by any company. Uses only public data.*
+An independent study on a public benchmark.
 
-**Question.** If a bug-fixing agent starts with a cheap/small model and escalates to a stronger model only when visible tests fail, how much test-based repair success does it keep compared with always using the strong model, and what does that cost in money, latency and tokens?
+A bug-fixing agent can start with a cheap model and call a stronger model only when the
+visible tests fail. I wanted to know how much repair quality this keeps compared with always
+using the strong model, and what it costs. I ran three policies on 26 QuixBugs Python programs
+with two local models (Qwen2.5-Coder 1.5B and 7B). The rules were written down and tagged
+before the eval run. Under those rules escalation lost: 79.5% resolved against 85.9% for the
+strong model alone, at 56% higher estimated cost. A follow-up analysis, done after seeing the
+results, found that most of the quality loss came from the hand-off. When the strong model was
+shown the small model's wrong code, it did worse. Passing only the test feedback instead
+recovered all the lost runs (7 vs 0 discordant pairs, exact sign test p = 0.016). With these two
+models escalation still cannot save money, because the 7B costs only about 1.7 times as much
+per call as the 1.5B.
 
-## Design (short)
+## Results
 
-| Item | Choice |
-|---|---|
-| Benchmark | QuixBugs (Python): 31 single-function programs, each with one real bug (MIT licence) |
-| Split | 5 dev tasks (for tuning, one per bug family) / 26 eval tasks (only after freezing); stratified by `bug_family`, seed 2026 |
-| Tests | ≤3 **visible** cases shown to the agent; the rest are **hidden** and only used for grading |
-| Agent | Bounded repair loop: propose fix → run visible tests → at most one retry with visible feedback |
-| Policies | `small_only` (S→S), `strong_only` (L→L), `escalate` (S→L). Every policy gets **at most 2 calls** |
-| Models | Local: Qwen2.5-Coder 1.5B / 7B via Ollama. Later: one frontier API model |
-| Metrics | Test-based resolution rate (overall and per bug family), cost per solved task, latency, tokens, escalation rate, false acceptance (passes visible, fails hidden) |
-| Sampling | temperature 0.2, seed = base seed + repeat index, so repeats are independent samples |
-| Cost | Local models priced at a standardized list-price estimate (Fireworks serverless size tiers, see config comments); tokens and latency are measured |
+Eval split: 26 tasks, 3 repeats per task and policy. Resolution means valid output that passes
+all visible and all hidden tests, averaged per task and then over tasks. Costs are list-price
+estimates for locally run models, computed from measured tokens.
 
-Fairness rules: the same prompt for every model, hidden results never reach a prompt or a routing decision, transport errors are retried and logged as infrastructure errors (not model failures), invalid model output stays in the denominator, and bad answers are never re-sampled.
+| Policy | Calls | Resolution | Solved | Est. cost | Cost vs strong_only | Median latency | False acceptance |
+|---|---|---|---|---|---|---|---|
+| strong_only | 7B, then 7B | 85.9% | 67/78 | $0.0085 | reference | 3.7 s | 4% |
+| escalate | 1.5B, then 7B | 79.5% | 62/78 | $0.0132 | +56% | 6.3 s | 3% |
+| small_only | 1.5B, then 1.5B | 34.6% | 27/78 | $0.0088 | +4% | 4.0 s | 7% |
+| escalate_clean (exploratory) | 1.5B, then 7B with test feedback only | 88.5% | 69/78 | $0.0104 | +22% | invalid | 3% |
 
-## Bug labels
+The first three rows are the pre-registered eval (`results/eval_local_v1`). escalate_clean was
+designed after seeing those results, so it is exploratory (`results/escalate_clean_v1`). Its
+latency is not reported because another application was using the GPU during that run.
 
-Each task's `meta.json` carries `bug_type_ye`, `bug_type` and `bug_family` (analysis only; they never reach a prompt, see `tests/test_infra.py`).
-`bug_type_ye` is the per-program label from Ye et al., Table 1 (labelled on the Java versions; the QuixBugs paper itself only gives class counts).
-**22 labels taken as-is from Ye et al. Table 1; 9 adapted to the Python diff**, each with a `bug_type_note`:
+Pre-set decision rule: escalate is acceptable if it loses at most one task (3.8 percentage
+points) against strong_only and costs less. It failed both conditions.
 
-| Task | Ye et al. (Java) | Used (Python diff) |
-|---|---|---|
-| lcs_length | Incorrect array slice | Incorrect array index |
-| flatten | Missing function call | Extra function call |
-| levenshtein | Missing '+1' | Added '+1' |
-| kheapsort | Missing function call | Missing array slice |
-| longest_common_subsequence | Missing function call | Missing array slice |
-| subsequences | Missing lines with a function call | Incorrect data structure constant |
-| get_factors | Wrong constructor call | Incorrect data structure constant |
-| kth | Reference to an incorrect variable | Incorrect argument value |
-| mergesort | Incorrect arithmetic expression | Incorrect boundary condition |
+Other findings:
 
-The 17 Ye types are too sparse for 31 tasks, so analysis reports 5 coarse families
-(`boundary`, `operator`, `variable`, `condition`, `missing_code`; mapping in `scripts/prepare_tasks.py`).
-Eval has 3-7 tasks per family, so **per-family rates are descriptive only**, not evidence that a policy is better for a bug type.
-Labels and families were fixed before any real-model run.
+- The 7B never copied the small model's code (0 of 51 escalated runs). It made different
+  mistakes. On `subsequences` it made the correct one-line fix and then also changed a loop
+  bound, which broke the program.
+- strong_only was not winning by having two tries. 66 of its 67 solved runs were solved on the
+  first call.
+- The 1.5B model often returned the buggy program unchanged.
+- On `find_in_sorted` the small model's fix passed every visible test and failed a hidden one.
+  Routing on visible tests cannot catch this.
+- Per-family results (5 bug families, 3 to 7 tasks each) are in the summary files. They are
+  descriptive only.
+
+### Break-even
+
+Escalation saves money only if `p * C_strong > C_small`, where `p` is the share of runs in which
+the small model passes the visible tests on its first try. In the eval, p = 0.35, so the strong
+model would need to cost more than 2.9 times as much per call. The measured ratio was 1.7. The
+dashed lines show illustrative 10x, 30x and 100x price ratios, which is closer to the situation
+with a frontier API model behind a small one.
+
+![Break-even plot](results/eval_local_v1/break_even_escalate.svg)
+
+## Method
+
+- Tasks: the 31 QuixBugs Python programs that have JSON test cases. Each has one real bug.
+  5 are dev tasks used for tuning (one per bug family) and 26 are eval tasks. The split is
+  stratified by bug family with seed 2026.
+- Tests: up to 3 visible cases are shown to the model, and at least one of them fails on the
+  buggy program. The remaining hidden cases are used only for grading.
+- Loop: at most two model calls per run. The first call gets the buggy program and the visible
+  tests. If the candidate passes the visible tests, the run stops. Otherwise the second call
+  also gets the previous candidate and the visible-test failures. Hidden results never reach a
+  prompt or a routing decision.
+- Output: the model returns the whole corrected file, not a diff. Small models produce malformed
+  diffs too often, and that would measure formatting skill instead of repair skill.
+- Sampling: temperature 0.2, seed = 2026 + repeat index, the same seed for every policy within
+  a repeat.
+- Cost: Fireworks serverless size-tier list prices, $0.10 per 1M tokens for the 1.5B model and
+  $0.20 for the 7B (source and date in the config files).
+- Full protocol, written before the eval: [docs/experiment_protocol.md](docs/experiment_protocol.md).
+  Post-hoc analysis: [docs/exploratory.md](docs/exploratory.md).
+- History was rewritten once before publishing to remove a private planning file; commit order
+  and dates are unchanged.
+
+## Reproduce
+
+Requires Python 3.10 or newer. The fake run and the tests need no model and no GPU.
+
+```bash
+python -m venv .venv
+source .venv/bin/activate          # Windows: .venv\Scripts\Activate.ps1
+pip install -e ".[dev]"
+python -m pytest -q                # tests of the evaluator itself, about 2 minutes
+python -m routing_pilot.cli run --config configs/dev_fake.yaml
+```
+
+The fake run uses a model that always echoes the bug and one that always returns the
+reference fix. Expected: small_only 0%, strong_only 100% with 1 call, escalate 100% with
+2 calls.
+
+For the real models, install [Ollama](https://ollama.com/download), then:
+
+```bash
+ollama pull qwen2.5-coder:1.5b
+ollama pull qwen2.5-coder:7b
+python -m routing_pilot.cli check --config configs/dev_local.yaml   # both models should answer
+python -m routing_pilot.cli run   --config configs/eval_local.yaml  # 234 runs, about 20 minutes
+python -m routing_pilot.cli analyse --campaign eval_local_v1        # rebuild summary.md from logs
+python scripts/exploratory.py eval_local_v1 escalate_clean_v1       # exploratory comparison
+```
+
+The 7B model (about 4.7 GB) fits in 8 GB of VRAM. I ran everything on a laptop RTX 4070. A run
+that is interrupted resumes where it stopped and never repeats a finished run. To rerun a
+campaign from scratch, change its `campaign` name. `configs/eval_3tier.TEMPLATE.yaml` adds a
+frontier API model. Its key is read from the `FRONTIER_API_KEY` environment variable and never
+from a file.
 
 ## Layout
 
 ```
-configs/            dev_fake.yaml (plumbing), dev_local.yaml (Ollama), eval_3tier.TEMPLATE.yaml
-data/public/        buggy.py, public_cases.json, meta.json      <- the only thing prompts can see
-data/private/       reference.py, hidden_cases.json             <- evaluator only
-scripts/prepare_tasks.py   rebuild data/ from a QuixBugs checkout and apply the acceptance gate
-src/routing_pilot/
-  harness.py   runs one test case in its own process      sandbox.py  per-case subprocess + timeout
-  candidate.py extract/validate the model's code           prompts.py  identical prompt for all models
-  models.py    Ollama/OpenAI-compatible + fake clients     experiment.py  repair loop, logging, resume, budget stop
-  analysis.py  rebuilds every number from raw logs         cli.py      run / check / analyse
-tests/test_infra.py  tests of the evaluator itself (overfitting caught, no leakage, resume, ...)
-results/<campaign>/  attempts.jsonl, runs.jsonl, summary.md, per_task.csv, artifacts/
+configs/                campaign configs (models, prices, policies, seeds)
+data/public/<task>/     buggy.py, visible cases, labels: the only data a prompt can use
+data/private/<task>/    reference fix and hidden cases: grading only
+scripts/                prepare_tasks.py (rebuild data/ from QuixBugs), exploratory.py
+src/routing_pilot/      repair loop, sandbox, model clients, analysis, CLI
+tests/test_infra.py     tests of the evaluator (no leakage, overfit patches caught, resume)
+results/<campaign>/     raw JSONL logs, config used, summary.md, per_task.csv
 ```
 
-## Quick start
+## Limitations
 
-```bash
-pip install -e ".[dev]"
-python -m pytest -q                                            # evaluator tests
-python -m routing_pilot.cli run --config configs/dev_fake.yaml # no model needed
-python -m routing_pilot.cli check --config configs/dev_local.yaml
-python -m routing_pilot.cli run --config configs/dev_local.yaml
-```
-
-## Known limitations
-
-- QuixBugs is old and public, so it is probably in the models' training data (contamination). Results are about *this* benchmark and *these* models.
-- Small tasks (single functions); this does not represent multi-file, real-repository work.
-- Per-family results rest on 3-8 tasks per family (3-7 in eval) and are descriptive only.
-- "Resolved" means all available tests pass, not proven correctness.
-- Local model costs are list-price estimates from a hosted provider's size tiers, not money spent; hardware/energy cost is not included.
-- Code produced by models runs in a separate process with an import/call deny-list. That is isolation, not a security sandbox.
+- QuixBugs is old and public, so it is probably in the models' training data.
+- 26 small single-function programs. This says nothing about multi-file or real-repository work.
+- The repeats are correlated. At temperature 0.2 the small model gave only 2 distinct answers
+  in 6 seeds on the two tasks I checked.
+- The local models are Q4_K_M quantized, while the list prices are for hosted models that are
+  usually full precision.
+- Costs are estimates. Hardware and energy are not included.
+- Some tasks have only one visible test (for example `wrap`), which limits the feedback.
+- Model code runs in a separate process with an import and call deny-list. That is isolation,
+  not a security sandbox.
+- The escalate_clean result is post-hoc. It needs a pre-registered replication before it can be
+  claimed.
 
 ## Attribution
 
-Tasks derived from QuixBugs (Lin, Koppel, Chen, Solar-Lezama, 2017), https://github.com/jkoppel/QuixBugs, MIT licence. See `data/QUIXBUGS_LICENSE`.
+Tasks are derived from QuixBugs (Lin, Koppel, Chen, Solar-Lezama, 2017),
+https://github.com/jkoppel/QuixBugs, MIT licence, see `data/QUIXBUGS_LICENSE`.
 
-Bug-type labels from Ye, Martinez, Durieux, Monperrus, "A Comprehensive Study of Automatic Program Repair on the QuixBugs Benchmark", *Journal of Systems and Software* (2021), arXiv:1805.03454, Table 1 (9 adapted to Python, listed above).
+Bug-type labels come from Ye, Martinez, Durieux, Monperrus, "A Comprehensive Study of Automatic
+Program Repair on the QuixBugs Benchmark", Journal of Systems and Software (2021),
+arXiv:1805.03454, Table 1. 22 labels are used as-is and 9 are adapted to the Python diff. The
+mapping and the reason for each change are in `scripts/prepare_tasks.py`.
+
+## License
+
+MIT, see `LICENSE`.

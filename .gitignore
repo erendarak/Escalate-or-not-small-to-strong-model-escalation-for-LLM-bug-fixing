@@ -1,6 +1,13 @@
+# Python
 __pycache__/
 *.egg-info/
+.pytest_cache/
 .venv/
 .env
+
+# Per-run prompts, responses and candidates (large; the JSONL logs are kept)
 results/*/artifacts/
+
+# IDEs
 .idea/
+.vscode/

@@ -4,8 +4,11 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "routing-pilot"
-version = "0.1.0"
-description = "Independent pilot: cost-quality trade-offs of model routing for LLM bug-fixing agents"
+version = "1.0.0"
+description = "Small-to-strong model escalation for LLM bug fixing: a pre-registered study on QuixBugs"
+readme = "README.md"
+license = {text = "MIT"}
+authors = [{name = "Eren Darak"}]
 requires-python = ">=3.10"
 dependencies = ["openai>=1.40", "pyyaml>=6.0"]
 

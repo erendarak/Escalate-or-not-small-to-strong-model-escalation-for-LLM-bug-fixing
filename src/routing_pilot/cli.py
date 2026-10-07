@@ -7,6 +7,7 @@
 from __future__ import annotations
 
 import argparse
+import sys
 
 from .analysis import summarise
 from .config import ROOT, load_config
@@ -15,6 +16,7 @@ from .models import make_client
 
 
 def main():
+    sys.stdout.reconfigure(encoding="utf-8")   # Windows consoles default to cp125x; summary has Δ
     ap = argparse.ArgumentParser(prog="routing_pilot")
     sub = ap.add_subparsers(dest="cmd", required=True)
     for name in ("run", "check"):

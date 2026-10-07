@@ -1,0 +1,35 @@
+# FROZEN eval campaign with the two LOCAL models (protocol: docs/experiment_protocol.md).
+# Same models, prompt and sampling as configs/dev_local.yaml; only split, repeats, seed and campaign differ.
+# Do not edit after the eval run has started. A re-run gets a NEW campaign name; old results are never deleted.
+#   26 eval tasks x 3 policies x 3 repeats = 234 runs
+campaign: eval_local_v1
+split: eval
+repeats: 3
+seed: 2026             # base seed; repeat r uses seed + r (2026, 2027, 2028), same for every policy in a repeat
+test_timeout_s: 3
+budget_usd: 0          # budget guard counts only billed (hosting: api) calls; none here
+models:
+  small:
+    kind: openai_compat
+    model: qwen2.5-coder:1.5b   # Ollama digest d7372fd82851 (Q4_K_M)
+    # Standardized list-price ESTIMATE (not billed: runs locally). Fireworks AI serverless size tier
+    # 'less than 4B parameters': $0.10/1M tokens, same for input and output. Source: https://docs.fireworks.ai/serverless/pricing
+    # (retrieved 2026-10-07; page lists size tiers, not this model by name).
+    usd_per_1m_input: 0.1
+    usd_per_1m_output: 0.1
+    base_url: http://localhost:11434/v1
+    temperature: 0.2
+  strong:
+    kind: openai_compat
+    model: qwen2.5-coder:7b     # Ollama digest dae161e27b0e (Q4_K_M)
+    # Standardized list-price ESTIMATE (not billed: runs locally). Fireworks AI serverless size tier
+    # '4B - 16B parameters': $0.20/1M tokens, same for input and output. Source: https://docs.fireworks.ai/serverless/pricing
+    # (retrieved 2026-10-07; page lists size tiers, not this model by name).
+    usd_per_1m_input: 0.2
+    usd_per_1m_output: 0.2
+    base_url: http://localhost:11434/v1
+    temperature: 0.2
+policies:
+  small_only:  [small, small]
+  strong_only: [strong, strong]
+  escalate:    [small, strong]

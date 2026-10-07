@@ -8,7 +8,7 @@ Valid runs: 234 | infra-error records excluded: 0 | reference policy: strong_onl
 | strong_only | 85.9% | +0.0 | 67/78 | 0.0085 | 0.0001 | +0% | 3.7 | 3.2 | 1.12 | n/a | 4% | 33722/8533 |
 | small_only | 34.6% | -51.3 | 27/78 | 0.0088 | 0.0003 | +4% | 4.0 | 3.2 | 1.65 | n/a | 7% | 63753/24427 |
 
-Resolution by bug_family (task-averaged; descriptive only, 1-8 tasks per family):
+Resolution by bug_family (task-averaged; descriptive only, 3-7 tasks per family):
 
 | Family | Tasks | escalate | strong_only | small_only |
 |---|---|---|---|---|

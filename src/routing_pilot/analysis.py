@@ -74,7 +74,6 @@ def summarise(campaign_dir: Path, reference_policy: str = "strong_only") -> str:
                      f"{x['total_cost_usd']:.4f} | {cps} | {c_red} | {x['median_e2e_s']:.1f} | {x['median_api_s']:.1f} | "
                      f"{x['mean_calls']:.2f} | "
                      f"{esc} | {fa} | {x['input_tokens']}/{x['output_tokens']} |")
-    lines += ["", "Resolution by bug_family (task-averaged; descriptive only, 1-8 tasks per family):", ""]
     lines += _family_table(by_pol, list(rows))
     lines += ["", "Status counts:"] + [f"- {p}: {x['statuses']}" for p, x in rows.items()]
     lines += ["", "Cost basis per model:"] + _cost_basis(campaign_dir)
@@ -102,7 +101,10 @@ def _family_table(by_pol: dict, policies: list[str]) -> list[str]:
     for rs in by_pol.values():
         for r in rs:
             fam_tasks[r.get("bug_family") or "unlabelled"].add(r["task_id"])
-    out = ["| Family | Tasks | " + " | ".join(policies) + " |", "|---|---|" + "---|" * len(policies)]
+    sizes = sorted(len(v) for v in fam_tasks.values()) or [0]
+    span = f"{sizes[0]}" if sizes[0] == sizes[-1] else f"{sizes[0]}-{sizes[-1]}"
+    out = ["", f"Resolution by bug_family (task-averaged; descriptive only, {span} tasks per family):", "",
+           "| Family | Tasks | " + " | ".join(policies) + " |", "|---|---|" + "---|" * len(policies)]
     for fam in sorted(fam_tasks):
         cells = []
         for pol in policies:

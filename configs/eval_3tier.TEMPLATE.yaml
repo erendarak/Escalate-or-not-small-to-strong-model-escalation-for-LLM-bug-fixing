@@ -7,16 +7,26 @@ split: eval
 repeats: 3
 seed: 2026                # base seed; repeat r uses seed + r (temperature 0.2 -> repeats are real samples)
 test_timeout_s: 3
-budget_usd: 15         # hard stop for paid calls
+budget_usd: 15         # hard stop for paid (hosting: api) calls; local list-price estimates don't count
 models:
   small:
     kind: openai_compat
     model: qwen2.5-coder:1.5b
+    # Standardized list-price ESTIMATE (not billed: runs locally). Fireworks AI serverless size tier
+    # 'less than 4B parameters': $0.10/1M tokens, same for input and output. Source: https://docs.fireworks.ai/serverless/pricing
+    # (retrieved 2026-10-07; page lists size tiers, not this model by name).
+    usd_per_1m_input: 0.1
+    usd_per_1m_output: 0.1
     base_url: http://localhost:11434/v1
     temperature: 0.2
   medium:
     kind: openai_compat
     model: qwen2.5-coder:7b
+    # Standardized list-price ESTIMATE (not billed: runs locally). Fireworks AI serverless size tier
+    # '4B - 16B parameters': $0.20/1M tokens, same for input and output. Source: https://docs.fireworks.ai/serverless/pricing
+    # (retrieved 2026-10-07; page lists size tiers, not this model by name).
+    usd_per_1m_input: 0.2
+    usd_per_1m_output: 0.2
     base_url: http://localhost:11434/v1
     temperature: 0.2
   frontier:

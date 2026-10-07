@@ -60,9 +60,11 @@ class Store:
         return keys
 
     def spent_usd(self) -> float:
+        """Real money only: local models carry a list-price ESTIMATE that is never billed."""
         if not self.attempts.exists():
             return 0.0
-        return sum(json.loads(l).get("cost_usd") or 0.0 for l in self.attempts.read_text(encoding="utf-8").splitlines())
+        recs = (json.loads(l) for l in self.attempts.read_text(encoding="utf-8").splitlines())
+        return sum(r.get("cost_usd") or 0.0 for r in recs if r.get("hosting") == "api")
 
     def artifact(self, run_id: str, name: str, content: str):
         d = self.root / "artifacts" / run_id
@@ -99,7 +101,7 @@ def run_one(cfg: Config, clients: dict, store: Store, task_id: str, policy: str,
             client.current_task = task_id
 
         # Budget guard: worst case for this call = generous input estimate + max output.
-        if cfg.budget_usd > 0 and (spec.usd_per_1m_input or spec.usd_per_1m_output):
+        if cfg.budget_usd > 0 and spec.hosting == "api" and (spec.usd_per_1m_input or spec.usd_per_1m_output):
             worst = (4000 * spec.usd_per_1m_input + spec.max_tokens * spec.usd_per_1m_output) / 1e6
             if store.spent_usd() + worst > cfg.budget_usd:
                 raise BudgetExhausted(f"budget {cfg.budget_usd} USD would be exceeded")
@@ -112,7 +114,8 @@ def run_one(cfg: Config, clients: dict, store: Store, task_id: str, policy: str,
             infra = str(exc)
             store.append(store.attempts, dict(run_id=run_id, run_key=run_key, task_id=task_id, policy=policy,
                                               repeat=repeat, attempt=attempt, model_key=mkey, model=spec.model,
-                                              timestamp_utc=_now(), error_type="infra", error=infra, cost_usd=0.0))
+                                              hosting=spec.hosting, timestamp_utc=_now(), error_type="infra", error=infra,
+                                              cost_usd=0.0))
             break
 
         calls += 1

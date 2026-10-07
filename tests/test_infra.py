@@ -146,3 +146,10 @@ def test_openai_client_sends_per_call_seed_and_temperature():
     client.client = stub = Stub()
     client.generate([{"role": "user", "content": "hi"}], seed=7)
     assert stub.kwargs["seed"] == 7 and stub.kwargs["temperature"] == 0.2
+
+
+def test_budget_counts_only_billed_api_calls(tmp_path):
+    store = Store(tmp_path)
+    store.append(store.attempts, {"hosting": "local", "cost_usd": 5.0})   # list-price estimate, never billed
+    store.append(store.attempts, {"hosting": "api", "cost_usd": 0.25})
+    assert store.spent_usd() == 0.25

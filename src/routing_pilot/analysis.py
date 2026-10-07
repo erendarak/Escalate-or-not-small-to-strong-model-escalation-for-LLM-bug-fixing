@@ -61,8 +61,8 @@ def summarise(campaign_dir: Path, reference_policy: str = "strong_only") -> str:
     lines = [f"# Results: {campaign_dir.name}", "",
              f"Valid runs: {len(valid)} | infra-error records excluded: {n_infra} | reference policy: {reference_policy}", "",
              "| Policy | Resolution (task-avg) | Δ vs ref (pp) | Solved/Runs | Total cost $ | Cost/solved $ | "
-             "Cost Δ vs ref | Median e2e s | Mean calls | Escalation | False accept. | Tokens in/out |",
-             "|---|---|---|---|---|---|---|---|---|---|---|---|"]
+             "Cost Δ vs ref | Median e2e s | Median API s | Mean calls | Escalation | False accept. | Tokens in/out |",
+             "|---|---|---|---|---|---|---|---|---|---|---|---|---|"]
     for pol, x in rows.items():
         d_pp = f"{100 * (x['resolution_rate'] - ref['resolution_rate']):+.1f}" if ref else "–"
         c_red = ("–" if not ref or ref["total_cost_usd"] == 0 else
@@ -71,12 +71,15 @@ def summarise(campaign_dir: Path, reference_policy: str = "strong_only") -> str:
         esc = "n/a" if x["escalation_rate"] is None else f"{100 * x['escalation_rate']:.0f}%"
         fa = "n/a" if x["false_acceptance"] is None else f"{100 * x['false_acceptance']:.0f}%"
         lines.append(f"| {pol} | {100 * x['resolution_rate']:.1f}% | {d_pp} | {x['solved']}/{x['runs']} | "
-                     f"{x['total_cost_usd']:.4f} | {cps} | {c_red} | {x['median_e2e_s']:.1f} | {x['mean_calls']:.2f} | "
+                     f"{x['total_cost_usd']:.4f} | {cps} | {c_red} | {x['median_e2e_s']:.1f} | {x['median_api_s']:.1f} | "
+                     f"{x['mean_calls']:.2f} | "
                      f"{esc} | {fa} | {x['input_tokens']}/{x['output_tokens']} |")
     lines += ["", "Status counts:"] + [f"- {p}: {x['statuses']}" for p, x in rows.items()]
+    lines += ["", "Cost basis per model:"] + _cost_basis(campaign_dir)
     lines += ["", "Notes: resolution = valid output AND all visible AND all hidden tests pass. "
               "False acceptance = passed visible tests but failed hidden tests, among runs whose final "
-              "candidate passed visible tests. Local models are $0 by construction; compare them on latency/tokens."]
+              "candidate passed visible tests. Costs of local models are standardized list-price estimates "
+              "(see config comments for source/date), not money spent; tokens and latency are measured."]
     text = "\n".join(lines)
     (campaign_dir / "summary.md").write_text(text, encoding="utf-8")
 
@@ -89,6 +92,19 @@ def summarise(campaign_dir: Path, reference_policy: str = "strong_only") -> str:
             w.writerow([t] + [f"{sum(r['resolved'] for r in by_pol[p] if r['task_id'] == t)}/"
                               f"{sum(1 for r in by_pol[p] if r['task_id'] == t)}" for p in rows])
     return text
+
+
+def _cost_basis(campaign_dir: Path) -> list[str]:
+    cfg_path = campaign_dir / "config_used.json"
+    if not cfg_path.exists():
+        return ["- unknown (config_used.json missing)"]
+    models = json.loads(cfg_path.read_text(encoding="utf-8")).get("models_resolved", {})
+    out = []
+    for key, m in models.items():
+        basis = "billed API price" if m.get("hosting") == "api" else "list-price estimate, runs locally"
+        out.append(f"- {key} = {m.get('model')}: ${m.get('usd_per_1m_input', 0)}/1M in, "
+                   f"${m.get('usd_per_1m_output', 0)}/1M out ({basis})")
+    return out
 
 
 def _count(it):

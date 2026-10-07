@@ -10,17 +10,18 @@ and the tasks inspected in C were chosen because they looked surprising. No sign
 Numbers: `docs/exploratory_tables.md`, regenerated with
 `python scripts/exploratory.py eval_local_v1 > docs/exploratory_tables.md`.
 
-## A. Does the small model's failed candidate hurt the 7B model?
+## A. Hand-off context effect: does the small model's failed candidate hurt the 7B model?
 
 The 7B model's single-shot success on the **clean** prompt (strong_only attempt 1) was compared
 with its success when the prompt also carries the small model's failed candidate and the
 visible-test feedback (escalate attempt 2). The comparison covers the 18 tasks where escalation
 happened at least once.
 
-- Task-averaged: **clean 83% vs anchored 73% (−10.2 pp)**. Clean was better on 4 tasks, anchored
-  on 1 (kth), and 13 tied.
-- Paired by (task, repeat), using the same seed: clean succeeded and anchored failed in 7 runs;
-  the reverse happened in 2 runs.
+- Task-averaged: **clean 83% vs in-context 73% (−10.2 pp)**. Clean was better on 4 tasks,
+  in-context on 1 (kth), and 13 tied.
+- Paired by (task, repeat), using the same seed: clean succeeded and in-context failed in 7 runs;
+  the reverse happened in 2 runs. **Exact two-sided sign test on the 7 vs 2 discordant pairs:
+  p = 0.18.** This is consistent with a hand-off context effect but does not establish one.
 
 Caveat: escalated runs are the ones the small model failed, so they are not a random sample of
 attempts. The pairing by task and repeat controls for which task it is, not for this selection.
@@ -50,6 +51,9 @@ attempts and only one succeeded. With attempt 1 alone, its task-averaged resolut
 
 ## C. Does the 7B model copy or minimally edit the small model's wrong code?
 
+This is why the finding is called a **hand-off context effect** and not anchoring: the 7B never
+reproduces the small model's code.
+
 **It doesn't copy.** In all 51 escalated runs, the 7B candidate never matched the small candidate
 code-for-code, and never matched the buggy program. Instead, the inspected tasks show two ways the
 hand-off misleads it (code-only comparison):
@@ -64,11 +68,11 @@ hand-off misleads it (code-only comparison):
 - **knapsack, structural mix (3/3 repeats):**
   - The small model rewrote the inner loop to run backwards (`range(capacity, weight - 1, -1)`)
     but kept the 2-D memo.
-  - The anchored 7B keeps that backward loop and the 2-D memo, and drops the row-copy line, so it
+  - With the small candidate in context, the 7B keeps that backward loop and the 2-D memo, and drops the row-copy line, so it
     is wrong.
   - On the clean prompt the 7B also chose a backward loop, but converted consistently to a 1-D
     memo, which is correct in 2 of 3 repeats.
-  - So the anchored answer looks like a mix of its own idea and the small model's structure.
+  - So the in-context answer looks like a mix of its own idea and the small model's structure.
     This is weaker evidence than subsequences, because both versions independently chose the
     backward loop.
 
@@ -79,3 +83,25 @@ hand-off misleads it (code-only comparison):
 - A hand-off that passes **only the visible-test feedback**, without the previous code, might
   keep most of the strong model's clean success. That is the proposed `escalate_clean` campaign,
   also post-hoc and exploratory.
+
+## Prediction for `escalate_clean_v1` (written and committed BEFORE the run)
+
+`escalate_clean` = `[small, strong]`, but when attempt 1 fails, the strong call gets the original
+prompt plus the visible-test feedback only, without the small model's code. Same 26 eval tasks,
+repeats, seeds (2026 + repeat), models and prices as `eval_local_v1`.
+
+**Prediction:** if the hand-off context hurts, escalate_clean should resolve more escalated runs
+than escalate on the same (task, repeat) pairs.
+
+How it is checked, fixed now:
+
+- The primary comparison uses (task, repeat) pairs that escalated in **both** campaigns. Count the
+  discordant pairs: resolved only under escalate_clean vs resolved only under escalate. Report
+  both counts and an exact two-sided sign test p-value. This is exploratory: no claim beyond what
+  the test shows.
+- Pairs that escalated in only one campaign, because the small model's first attempt did not
+  reproduce, are reported separately and are not part of the primary comparison.
+- Also reported: how many small-model first attempts match `eval_local_v1`'s `candidate_hash`,
+  and overall resolution, cost and calls for escalate_clean, next to escalate and strong_only.
+- Not done: the pre-registered decision rule is not re-applied to declare escalate_clean a
+  success, because this policy was designed after seeing the eval results.

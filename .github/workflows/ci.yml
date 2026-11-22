@@ -31,3 +31,22 @@ jobs:
           python -m routing_pilot.cli analyse --campaign eval_local_v1 > /dev/null
           python -m routing_pilot.cli analyse --campaign escalate_clean_v1 > /dev/null
           git diff --exit-code results/eval_local_v1 results/escalate_clean_v1
+
+  docker:
+    # Added November 2026: the evaluator image builds, and tests + fake campaign pass inside it (no GPU needed).
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build evaluator image
+        run: docker build -f docker/Dockerfile -t routing-pilot:ci .
+      - name: Tests inside the container
+        run: docker run --rm routing-pilot:ci
+      - name: Fake campaign inside the container
+        run: |
+          docker run --rm routing-pilot:ci sh -c '
+            python -m routing_pilot.cli run --config configs/dev_fake.yaml --campaign ci_fake > /dev/null &&
+            grep -q "| small_only | 0.0% |" results/ci_fake/summary.md &&
+            grep -q "| strong_only | 100.0% |" results/ci_fake/summary.md &&
+            grep -q "| escalate | 100.0% |" results/ci_fake/summary.md'
+      - name: Compose file is valid
+        run: docker compose config --quiet

@@ -1,0 +1,48 @@
+# Two services: Ollama serving the models on the GPU, and the evaluator calling it over HTTP.
+#
+#   docker compose up -d ollama                 # start the model server
+#   ./docker/pull_models.sh                     # or docker\pull_models.ps1 on Windows
+#   docker compose run --rm evaluator python -m routing_pilot.cli check --config configs/dev_local.yaml
+#
+# Needs Docker with the NVIDIA GPU runtime (Docker Desktop + WSL 2 on Windows).
+services:
+  ollama:
+    image: ollama/ollama:0.40.0          # pinned; same version as the native Windows install used for comparison
+    ports:
+      - "127.0.0.1:11435:11434"          # host port 11435, so it can run next to a native Ollama on 11434
+    volumes:
+      - ollama-models:/root/.ollama      # models persist across container restarts
+    environment:
+      - OLLAMA_KEEP_ALIVE=30m
+      - OLLAMA_NUM_PARALLEL=4            # allow up to 4 concurrent requests per model (serving benchmark)
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+    restart: unless-stopped
+
+  evaluator:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    image: routing-pilot:dev
+    depends_on:
+      ollama:
+        condition: service_healthy
+    environment:
+      - OLLAMA_HOST=http://ollama:11434  # rewrites the configs' localhost:11434 URLs (see models.ollama_base_url)
+    volumes:
+      - ./results:/app/results           # campaign outputs land on the host
+    profiles: ["eval"]                   # not started by a plain `docker compose up`; use `docker compose run`
+
+volumes:
+  ollama-models:

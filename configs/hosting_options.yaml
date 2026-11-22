@@ -1,0 +1,79 @@
+# Hosting cost model inputs (added November 2026, after the original study).
+# Used by: python scripts/hosting_cost.py --config configs/hosting_options.yaml
+# Every price has a source URL and the date it was read. Assumptions are labelled ASSUMPTION.
+# Prices change often: re-check before relying on them.
+campaign: hosting_cost_v1
+
+throughput:
+  # Measured on this machine by scripts/serving_bench.py (no throughput is assumed).
+  summary_csv: results/serving_bench_v1/summary.csv
+  environment_json: results/serving_bench_v1/environment.json
+  target: docker
+  model: qwen2.5-coder:7b
+  concurrency: 4
+  # ASSUMPTION: the laptop RTX 4070 throughput stands in for a rented 24 GB L4/A10G. Decode speed is
+  # mostly memory-bandwidth bound and the cards are in the same range (spec sheets: RTX 4070 Laptop
+  # 256 GB/s, L4 300 GB/s, A10G 600 GB/s), so this is a rough proxy, not a measurement of those GPUs.
+
+workload:
+  # Median tokens per call for the 7B model in the pre-registered eval (results/eval_local_v1/attempts.jsonl).
+  tokens_per_call_in: 450
+  tokens_per_call_out: 106
+  mix_source: "median tokens per 7B call in results/eval_local_v1"
+  monthly_tokens: [1.0e+6, 1.0e+7, 1.0e+8, 1.0e+9]
+
+assumptions:
+  # ASSUMPTION: a scale-to-zero GPU service is billed for its busy time plus idle/warm-up overhead;
+  # 50% means half of billed GPU time does useful work.
+  busy_only_utilisation: 0.5
+
+api:
+  - name: Fireworks serverless, 4B-16B tier
+    usd_per_1m_input: 0.20
+    usd_per_1m_output: 0.20
+    source: https://docs.fireworks.ai/serverless/pricing
+    accessed: 2026-11-22
+    note: size-tier price, the same basis the study used; the page does not list Qwen2.5-Coder-7B by name
+  - name: DeepInfra Llama-3.1-8B-Instruct-Turbo
+    usd_per_1m_input: 0.02
+    usd_per_1m_output: 0.04
+    source: https://deepinfra.com/pricing
+    accessed: 2026-11-22
+    note: a different 8B model (no Qwen2.5 7B listed); shows the low end of the market
+  - name: Claude Sonnet 5.5 (frontier, for contrast)
+    usd_per_1m_input: 2.00
+    usd_per_1m_output: 10.00
+    source: https://platform.claude.com/docs/en/about-claude/pricing
+    accessed: 2026-11-22
+    note: a much stronger model; included as the price of the strong tier in an escalation setup
+
+cloud_gpu:
+  - name: AWS g6.xlarge L4, us-east-1
+    usd_per_hour: 0.8048
+    source: https://b0.p.awsstatic.com/pricing/2.0/meteredUnitMaps/ec2/USD/current/ec2-ondemand-without-sec-sel/US%20East%20(N.%20Virginia)/Linux/index.json
+    accessed: 2026-11-22
+    note: on-demand Linux, whole instance (1x L4 24 GB, 4 vCPU, 16 GiB)
+  - name: AWS g6.xlarge L4, eu-west-2 London
+    usd_per_hour: 1.0216
+    source: https://b0.p.awsstatic.com/pricing/2.0/meteredUnitMaps/ec2/USD/current/ec2-ondemand-without-sec-sel/EU%20(London)/Linux/index.json
+    accessed: 2026-11-22
+    note: UK region, for data residency
+  - name: RunPod L4, Secure Cloud
+    usd_per_hour: 0.69
+    source: https://www.runpod.io/pricing
+    accessed: 2026-11-22
+    note: per pod; region not stated on the page (Community Cloud is $0.44/h)
+
+own_gpu:
+  name: Own RTX 4070-class machine
+  # ASSUMPTION: hardware cost and life are not quotes; change them to your own figures.
+  hardware_usd: 1600
+  lifetime_months: 36
+  # "measured": mean GPU board power under load and at idle from the benchmark (nvidia-smi power.draw).
+  # This is the GPU only; the rest of the machine (CPU, screen, PSU losses) is not included.
+  busy_watts: measured
+  idle_watts: measured
+  # Ofgem price cap, 1 Oct - 31 Dec 2026, electricity unit rate 26.32p/kWh (Direct Debit, GB average):
+  # https://www.ofgem.gov.uk/publications/changes-energy-price-cap-between-1-october-and-31-december-2026 (accessed 2026-11-22)
+  # converted at 1.32 USD/GBP (OFX mid-market, 2026-11-13: https://www.ofx.com/en-us/exchange-rates/gbp-to-usd/).
+  usd_per_kwh: 0.3474

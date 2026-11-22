@@ -1,5 +1,6 @@
 # Escalate or not: small-to-strong model escalation for LLM bug fixing
-![tests](https://github.com/erendarak/escalate-or-not/actions/workflows/ci.yml/badge.svg)
+[![tests](https://github.com/erendarak/Escalate-or-not-small-to-strong-model-escalation-for-LLM-bug-fixing/actions/workflows/ci.yml/badge.svg)](https://github.com/erendarak/Escalate-or-not-small-to-strong-model-escalation-for-LLM-bug-fixing/actions/workflows/ci.yml)
+
 An independent study on a public benchmark.
 
 A bug-fixing agent can start with a cheap model and call a stronger model only when the
@@ -108,9 +109,75 @@ python scripts/exploratory.py eval_local_v1 escalate_clean_v1       # explorator
 
 The 7B model (about 4.7 GB) fits in 8 GB of VRAM. I ran everything on a laptop RTX 4070. A run
 that is interrupted resumes where it stopped and never repeats a finished run. To rerun a
-campaign from scratch, change its `campaign` name. `configs/eval_3tier.TEMPLATE.yaml` adds a
-frontier API model. Its key is read from the `FRONTIER_API_KEY` environment variable and never
-from a file.
+campaign from scratch, change its `campaign` name or pass `--campaign <new name>` to `run`.
+`configs/eval_3tier.TEMPLATE.yaml` adds a frontier API model. Its key is read from the
+`FRONTIER_API_KEY` environment variable and never from a file.
+
+## Run with Docker
+
+Added November 2026, after the original study. Two containers: `ollama` serves the models on the
+GPU, and `evaluator` runs this package and calls it over HTTP. The configs point at
+`localhost:11434`; inside Compose, `OLLAMA_HOST=http://ollama:11434` redirects those URLs (it only
+rewrites the default local Ollama address, never an API endpoint). Needs Docker with GPU support
+(on Windows: Docker Desktop with the WSL 2 backend and a current NVIDIA driver).
+
+```bash
+docker run --rm --gpus all nvidia/cuda:12.4.1-base-ubuntu22.04 nvidia-smi   # GPU visible to Docker?
+docker compose up -d ollama                        # Ollama 0.40.0, models kept in a named volume
+./docker/pull_models.sh                            # Windows: .\docker\pull_models.ps1 (about 5.7 GB)
+docker compose run --rm evaluator                  # evaluator tests
+docker compose run --rm evaluator python -m routing_pilot.cli check --config configs/dev_local.yaml
+docker compose run --rm evaluator python -m routing_pilot.cli run --config configs/dev_local.yaml --campaign docker_dev_v1
+```
+
+`results/` is mounted, so outputs land on the host. The container's Ollama is also published on
+host port 11435, so it can run next to a native Ollama on 11434. The evaluator image (269 MB) has
+no model weights and needs no GPU; CI builds it and runs the tests and the fake campaign inside it.
+
+`results/docker_dev_v1` is the dev split run through the containers. It matches the native
+`results/dev_local_v2` run (October 2026) exactly: all 25 model responses are byte-identical
+(same response hashes and token counts), so the resolution is the same for every policy. Seeds are
+fixed and the model digests are the same. The eval split was not rerun.
+
+## Serving benchmark and hosting costs
+
+Added November 2026, after the original study. `scripts/serving_bench.py` sends the study's
+first-attempt repair prompts (5 dev tasks) to Ollama and records time to first token, decode speed,
+throughput, VRAM and GPU power. It ran on the same laptop (RTX 4070 Laptop GPU, 8 GB), with
+Ollama 0.40.0 in Docker and natively, the same Q4_K_M models (same digests), 4096-token context,
+up to 256 output tokens and 10 batches per level. Medians:
+
+| Model | Concurrent | Docker TTFT | Docker decode tok/s per request | Docker total tok/s | Native total tok/s | VRAM (model) |
+|---|---|---|---|---|---|---|
+| 1.5B | 1 | 0.05 s | 168 | 492 | 474 | 1.5 GB |
+| 1.5B | 4 | 0.04 s | 94 | 777 | 1190 | 1.5 GB |
+| 7B | 1 | 0.09 s | 50 | 362 | 383 | 5.2 GB |
+| 7B | 4 | 0.08 s | 37 | 724 | 685 | 5.2 GB |
+
+Total tok/s counts prompt and output tokens per second of wall time, which is what a per-token API
+bills. Full table, including 2 concurrent requests:
+[results/serving_bench_v1/summary.md](results/serving_bench_v1/summary.md).
+
+- **Docker adds no measurable cost with one request at a time.** Paired batch by batch, Docker ran
+  at 100% (1.5B) and 97% (7B) of native throughput. Under concurrent load, batches varied too much
+  (±30%, run to run as well) to resolve a difference.
+- **Concurrency helps less than expected.** Four parallel requests roughly doubled the 7B's total
+  throughput, but per-request decode speed was bimodal (about 48 or 24 tok/s at 2 concurrent).
+  Ollama either ran the requests one after another or shared decode between them with little gain.
+  A continuous-batching server such as vLLM is built to fix this; that was not tested here.
+- The 7B used 5.2 GB of VRAM, plus about 0.7 GB for the desktop. GPU board power was about 5 W
+  idle and 61–68 W under load. A cold model load took 2–6 s.
+- On Windows, use `127.0.0.1` rather than `localhost` for one-connection-per-request clients: each
+  new connection to `localhost` waited about 2 s for an IPv6 fallback (2.04 s against 0.002 s).
+  The benchmark switches to `127.0.0.1` itself. The study's OpenAI client reuses its connection,
+  and its logged latencies (as low as 0.26 s) show no such floor.
+
+`scripts/hosting_cost.py` turns the measured 7B throughput and dated list prices into monthly
+costs for a per-token API, a rented L4 and an own GPU, at 1M to 1B tokens a month. At this
+throughput a per-token 7B API is far cheaper at every volume tested. An always-on rented L4
+costs $500–750 a month, and would need more tokens than one GPU can serve with Ollama to beat
+Fireworks' $0.20 per 1M. Details, sources, licensing, UK GDPR and operations:
+[docs/hosting_options.md](docs/hosting_options.md).
 
 ## Layout
 
@@ -118,9 +185,13 @@ from a file.
 configs/                campaign configs (models, prices, policies, seeds)
 data/public/<task>/     buggy.py, visible cases, labels: the only data a prompt can use
 data/private/<task>/    reference fix and hidden cases: grading only
-scripts/                prepare_tasks.py (rebuild data/ from QuixBugs), exploratory.py
+scripts/                prepare_tasks.py (rebuild data/ from QuixBugs), exploratory.py,
+                        serving_bench.py and hosting_cost.py (added November 2026)
 src/routing_pilot/      repair loop, sandbox, model clients, analysis, CLI
-tests/test_infra.py     tests of the evaluator (no leakage, overfit patches caught, resume)
+tests/                  tests of the evaluator (no leakage, overfit patches caught, resume),
+                        the serving benchmark and the cost model
+docker/, docker-compose.yml   evaluator image and the Ollama + evaluator setup (added November 2026)
+docs/hosting_options.md own GPU vs rented GPU vs per-token API (added November 2026)
 results/<campaign>/     raw JSONL logs, config used, summary.md, per_task.csv
 ```
 

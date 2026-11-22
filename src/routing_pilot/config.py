@@ -1,12 +1,13 @@
 """Experiment configuration (YAML) -> typed objects."""
 from __future__ import annotations
 
+import os
 from dataclasses import dataclass
 from pathlib import Path
 
 import yaml
 
-from .models import ModelSpec
+from .models import ModelSpec, ollama_base_url
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -32,6 +33,15 @@ class Config:
 def load_config(path: str | Path) -> Config:
     raw = yaml.safe_load(Path(path).read_text(encoding="utf-8"))
     models = {k: ModelSpec(key=k, **v) for k, v in raw["models"].items()}
+    # OLLAMA_HOST (e.g. http://ollama:11434 in Docker Compose) redirects default local-Ollama URLs.
+    # Unset -> configs behave exactly as before. When it changes a URL, the effective URLs are recorded.
+    overrides = {}
+    for k, spec in models.items():
+        new = ollama_base_url(spec.base_url, os.environ.get("OLLAMA_HOST"))
+        if new != spec.base_url:
+            spec.base_url = overrides[k] = new
+    if overrides:
+        raw = {**raw, "effective_base_urls": overrides}
     policies = raw["policies"]
     feedback_only = tuple(raw.get("feedback_only_policies") or ())
     if set(feedback_only) - set(policies):

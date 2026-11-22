@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="380" font-family="sans-serif" font-size="11">
+<rect width="640" height="380" fill="white"/>
+<text x="60" y="18" font-size="13">Aggregate decode throughput vs concurrent requests</text>
+<line x1="60" y1="330" x2="440" y2="330" stroke="black"/>
+<line x1="60" y1="30" x2="60" y2="330" stroke="black"/>
+<text x="250.0" y="368" text-anchor="middle">concurrent requests</text>
+<text x="16" y="180.0" text-anchor="middle" transform="rotate(-90 16 180.0)">output tokens/s (all requests)</text>
+<text x="60.0" y="346" text-anchor="middle">1</text>
+<text x="155.0" y="346" text-anchor="middle">2</text>
+<text x="250.0" y="346" text-anchor="middle">4</text>
+<text x="345.0" y="346" text-anchor="middle">8</text>
+<text x="440.0" y="346" text-anchor="middle">16</text>
+<line x1="60" y1="330.0" x2="440" y2="330.0" stroke="#ddd"/>
+<text x="54" y="334.0" text-anchor="end">0</text>
+<line x1="60" y1="255.0" x2="440" y2="255.0" stroke="#ddd"/>
+<text x="54" y="259.0" text-anchor="end">201</text>
+<line x1="60" y1="180.0" x2="440" y2="180.0" stroke="#ddd"/>
+<text x="54" y="184.0" text-anchor="end">403</text>
+<line x1="60" y1="105.0" x2="440" y2="105.0" stroke="#ddd"/>
+<text x="54" y="109.0" text-anchor="end">604</text>
+<line x1="60" y1="30.0" x2="440" y2="30.0" stroke="#ddd"/>
+<text x="54" y="34.0" text-anchor="end">806</text>
+<polyline points="60.0,270.7 155.0,270.1 250.0,214.7 345.0,219.6 440.0,215.5" fill="none" stroke="#1f77b4" stroke-width="2" stroke-dasharray="6,3"/>
+<circle cx="60.0" cy="270.7" r="3" fill="#1f77b4"/>
+<circle cx="155.0" cy="270.1" r="3" fill="#1f77b4"/>
+<circle cx="250.0" cy="214.7" r="3" fill="#1f77b4"/>
+<circle cx="345.0" cy="219.6" r="3" fill="#1f77b4"/>
+<circle cx="440.0" cy="215.5" r="3" fill="#1f77b4"/>
+<line x1="452" y1="40" x2="476" y2="40" stroke="#1f77b4" stroke-width="2" stroke-dasharray="6,3"/>
+<text x="482" y="44">ollama qwen2.5-coder:1.5b</text>
+<polyline points="60.0,303.3 155.0,292.3 250.0,257.4 345.0,188.0 440.0,57.3" fill="none" stroke="#ff7f0e" stroke-width="2" stroke-dasharray=""/>
+<circle cx="60.0" cy="303.3" r="3" fill="#ff7f0e"/>
+<circle cx="155.0" cy="292.3" r="3" fill="#ff7f0e"/>
+<circle cx="250.0" cy="257.4" r="3" fill="#ff7f0e"/>
+<circle cx="345.0" cy="188.0" r="3" fill="#ff7f0e"/>
+<circle cx="440.0" cy="57.3" r="3" fill="#ff7f0e"/>
+<line x1="452" y1="58" x2="476" y2="58" stroke="#ff7f0e" stroke-width="2" stroke-dasharray=""/>
+<text x="482" y="62">vllm qwen2.5-coder:1.5b</text>
+</svg>

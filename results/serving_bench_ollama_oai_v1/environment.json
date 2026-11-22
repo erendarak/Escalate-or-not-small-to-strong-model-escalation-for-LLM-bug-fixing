@@ -1,0 +1,38 @@
+{
+  "timestamp_utc": "2026-11-22T22:55:07Z",
+  "targets": {
+    "ollama": {
+      "kind": "openai",
+      "url": "http://127.0.0.1:11435",
+      "server": "OpenAI-compatible server",
+      "models": {
+        "qwen2.5-coder:1.5b": {
+          "served": true,
+          "root": null,
+          "max_model_len": null
+        }
+      }
+    }
+  },
+  "gpu": "NVIDIA GeForce RTX 4070 Laptop GPU, 8188 MiB, 621.01",
+  "vram": {
+    "ollama qwen2.5-coder:1.5b": {
+      "gpu_used_baseline_mib": 687,
+      "gpu_used_peak_mib": 2672,
+      "gpu_power_idle_w": 5.55,
+      "gpu_power_mean_under_load_w": 58.6,
+      "gpu_power_peak_w": 90.84,
+      "ollama_size_vram_mib": null,
+      "ollama_size_total_mib": null,
+      "context_length": null,
+      "cold_load_s": null,
+      "cold_ttft_s": 3.623
+    }
+  },
+  "options": {
+    "temperature": 0.0,
+    "seed": 0,
+    "num_predict": 256,
+    "num_ctx": 4096
+  }
+}

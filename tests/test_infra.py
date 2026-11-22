@@ -230,3 +230,40 @@ def test_default_handoff_prompt_matches_frozen_version():
                           "0/2 visible tests passed. Failures:\n- x")
     text = "\n\n".join(f"[{m['role']}]\n{m['content']}" for m in msgs)
     assert hashlib.sha256(text.encode()).hexdigest()[:16] == "78373559355de481"   # computed from the tagged code
+
+
+def test_ollama_host_override_only_rewrites_default_local_ollama():
+    from routing_pilot.models import ollama_base_url
+    local = "http://localhost:11434/v1"
+    assert ollama_base_url(local, None) == local                         # unset: unchanged
+    assert ollama_base_url(local, "") == local
+    assert ollama_base_url(local, "http://ollama:11434") == "http://ollama:11434/v1"
+    assert ollama_base_url(local, "ollama:11434") == "http://ollama:11434/v1"
+    assert ollama_base_url(local, "ollama") == "http://ollama:11434/v1"
+    assert ollama_base_url(local, "0.0.0.0") == "http://127.0.0.1:11434/v1"
+    assert ollama_base_url("http://127.0.0.1:11434/v1", "gpu-box:9000/") == "http://gpu-box:9000/v1"
+    api = "https://api.openai.com/v1"
+    assert ollama_base_url(api, "http://ollama:11434") == api            # API endpoints never touched
+
+
+def test_load_config_applies_ollama_host_and_records_it(monkeypatch):
+    monkeypatch.delenv("OLLAMA_HOST", raising=False)
+    plain = load_config(ROOT / "configs" / "dev_local.yaml")
+    assert plain.models["small"].base_url == "http://localhost:11434/v1"
+    assert "effective_base_urls" not in plain.raw                         # default behaviour unchanged
+    monkeypatch.setenv("OLLAMA_HOST", "http://ollama:11434")
+    c = load_config(ROOT / "configs" / "dev_local.yaml")
+    assert {s.base_url for s in c.models.values()} == {"http://ollama:11434/v1"}
+    assert c.raw["effective_base_urls"] == {"small": "http://ollama:11434/v1", "strong": "http://ollama:11434/v1"}
+
+
+def test_cli_campaign_override_writes_a_new_campaign(tmp_path, monkeypatch):
+    import sys
+    from routing_pilot import cli
+    cfg_text = (ROOT / "configs" / "dev_fake.yaml").read_text(encoding="utf-8")
+    cfg_file = tmp_path / "fake.yaml"
+    cfg_file.write_text(cfg_text + f"\nresults_dir: {tmp_path.as_posix()}\ntasks: [{TASK}]\n", encoding="utf-8")
+    monkeypatch.setattr(sys, "argv", ["x", "run", "--config", str(cfg_file), "--campaign", "renamed"])
+    cli.main()
+    assert (tmp_path / "renamed" / "runs.jsonl").exists() and not (tmp_path / "dev_fake").exists()
+    assert json.loads((tmp_path / "renamed" / "config_used.json").read_text())["campaign"] == "renamed"

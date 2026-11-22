@@ -1,0 +1,38 @@
+{
+  "timestamp_utc": "2026-11-22T22:51:53Z",
+  "targets": {
+    "vllm": {
+      "kind": "openai",
+      "url": "http://127.0.0.1:8000",
+      "server": "vLLM 0.33.0",
+      "models": {
+        "qwen2.5-coder:1.5b": {
+          "served": true,
+          "root": "Qwen/Qwen2.5-Coder-1.5B-Instruct",
+          "max_model_len": 4096
+        }
+      }
+    }
+  },
+  "gpu": "NVIDIA GeForce RTX 4070 Laptop GPU, 8188 MiB, 621.01",
+  "vram": {
+    "vllm qwen2.5-coder:1.5b": {
+      "gpu_used_baseline_mib": 6558,
+      "gpu_used_peak_mib": 6602,
+      "gpu_power_idle_w": 4.23,
+      "gpu_power_mean_under_load_w": 70.4,
+      "gpu_power_peak_w": 84.79,
+      "ollama_size_vram_mib": null,
+      "ollama_size_total_mib": null,
+      "context_length": null,
+      "cold_load_s": null,
+      "cold_ttft_s": 0.341
+    }
+  },
+  "options": {
+    "temperature": 0.0,
+    "seed": 0,
+    "num_predict": 256,
+    "num_ctx": 4096
+  }
+}

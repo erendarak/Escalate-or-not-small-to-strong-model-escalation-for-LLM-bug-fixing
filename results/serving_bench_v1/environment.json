@@ -1,0 +1,98 @@
+{
+  "timestamp_utc": "2026-11-22T22:29:51Z",
+  "targets": {
+    "docker": {
+      "url": "http://127.0.0.1:11435",
+      "ollama_version": "0.40.0",
+      "models": {
+        "qwen2.5-coder:1.5b": {
+          "parameter_size": "1.5B",
+          "quantization_level": "Q4_K_M",
+          "format": "gguf",
+          "family": "qwen2"
+        },
+        "qwen2.5-coder:7b": {
+          "parameter_size": "7.6B",
+          "quantization_level": "Q4_K_M",
+          "format": "gguf",
+          "family": "qwen2"
+        }
+      }
+    },
+    "native": {
+      "url": "http://127.0.0.1:11434",
+      "ollama_version": "0.40.0",
+      "models": {
+        "qwen2.5-coder:1.5b": {
+          "parameter_size": "1.5B",
+          "quantization_level": "Q4_K_M",
+          "format": "gguf",
+          "family": "qwen2"
+        },
+        "qwen2.5-coder:7b": {
+          "parameter_size": "7.6B",
+          "quantization_level": "Q4_K_M",
+          "format": "gguf",
+          "family": "qwen2"
+        }
+      }
+    }
+  },
+  "gpu": "NVIDIA GeForce RTX 4070 Laptop GPU, 8188 MiB, 621.01",
+  "vram": {
+    "docker qwen2.5-coder:1.5b": {
+      "gpu_used_baseline_mib": 688,
+      "gpu_used_peak_mib": 2364,
+      "gpu_power_idle_w": 5.03,
+      "gpu_power_mean_under_load_w": 65.6,
+      "gpu_power_peak_w": 87.91,
+      "ollama_size_vram_mib": 1514,
+      "ollama_size_total_mib": 1514,
+      "context_length": 4096,
+      "cold_load_s": 2.069,
+      "cold_ttft_s": 2.201
+    },
+    "docker qwen2.5-coder:7b": {
+      "gpu_used_baseline_mib": 685,
+      "gpu_used_peak_mib": 6346,
+      "gpu_power_idle_w": 5.73,
+      "gpu_power_mean_under_load_w": 63.2,
+      "gpu_power_peak_w": 85.88,
+      "ollama_size_vram_mib": 5200,
+      "ollama_size_total_mib": 5200,
+      "context_length": 4096,
+      "cold_load_s": 3.52,
+      "cold_ttft_s": 3.736
+    },
+    "native qwen2.5-coder:1.5b": {
+      "gpu_used_baseline_mib": 766,
+      "gpu_used_peak_mib": 2507,
+      "gpu_power_idle_w": 9.92,
+      "gpu_power_mean_under_load_w": 61.3,
+      "gpu_power_peak_w": 80.5,
+      "ollama_size_vram_mib": 1514,
+      "ollama_size_total_mib": 1514,
+      "context_length": 4096,
+      "cold_load_s": 4.262,
+      "cold_ttft_s": 4.403
+    },
+    "native qwen2.5-coder:7b": {
+      "gpu_used_baseline_mib": 678,
+      "gpu_used_peak_mib": 6030,
+      "gpu_power_idle_w": 4.87,
+      "gpu_power_mean_under_load_w": 67.5,
+      "gpu_power_peak_w": 87.36,
+      "ollama_size_vram_mib": 5200,
+      "ollama_size_total_mib": 5200,
+      "context_length": 4096,
+      "cold_load_s": 5.614,
+      "cold_ttft_s": 5.843
+    }
+  },
+  "options": {
+    "temperature": 0.0,
+    "seed": 0,
+    "num_predict": 256,
+    "num_ctx": 4096
+  }
+}

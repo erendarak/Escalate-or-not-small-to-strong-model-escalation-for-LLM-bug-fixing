@@ -1,0 +1,6 @@
+target,model,concurrency,n_requests,median_ttft_s,median_decode_tok_s_per_request,median_client_decode_tok_s,median_prefill_tok_s,median_aggregate_tok_s,median_aggregate_total_tok_s,median_output_tokens,median_request_wall_s,ollama_model_vram_mib,gpu_peak_mib,gpu_peak_minus_baseline_mib
+ollama,qwen2.5-coder:1.5b,1,10,0.045,164.226,164.226,,159.24,487.075,224.5,1.405,,2672,1985
+ollama,qwen2.5-coder:1.5b,2,20,0.046,116.758,116.758,,160.795,523.575,225.0,1.752,,2672,1985
+ollama,qwen2.5-coder:1.5b,4,40,0.043,105.021,105.021,,309.635,1118.01,224.5,2.177,,2672,1985
+ollama,qwen2.5-coder:1.5b,8,80,0.397,100.324,100.324,,296.335,1095.535,224.0,2.525,,2672,1985
+ollama,qwen2.5-coder:1.5b,16,160,2.708,94.811,94.811,,307.435,1103.1,224.0,4.833,,2672,1985

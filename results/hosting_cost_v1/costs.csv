@@ -1,0 +1,41 @@
+option,kind,monthly_tokens,usd_per_month,gpus,usd_per_1m_tokens
+"Fireworks serverless, 4B-16B tier",api,1000000.0,0.2,0,0.2
+DeepInfra Llama-3.1-8B-Instruct-Turbo,api,1000000.0,0.02,0,0.0238
+"Claude Sonnet 5.5 (frontier, for contrast)",api,1000000.0,3.53,0,3.5252
+"AWS g6.xlarge L4, us-east-1 (always on)",gpu_always_on,1000000.0,587.5,1,587.504
+"AWS g6.xlarge L4, us-east-1 (busy hours only)",gpu_busy_only,1000000.0,0.62,,0.6173
+"AWS g6.xlarge L4, eu-west-2 London (always on)",gpu_always_on,1000000.0,745.77,1,745.768
+"AWS g6.xlarge L4, eu-west-2 London (busy hours only)",gpu_busy_only,1000000.0,0.78,,0.7836
+"RunPod L4, Secure Cloud (always on)",gpu_always_on,1000000.0,503.7,1,503.7
+"RunPod L4, Secure Cloud (busy hours only)",gpu_busy_only,1000000.0,0.53,,0.5293
+Own RTX 4070-class machine,own_gpu,1000000.0,45.91,1,45.9052
+"Fireworks serverless, 4B-16B tier",api,10000000.0,2.0,0,0.2
+DeepInfra Llama-3.1-8B-Instruct-Turbo,api,10000000.0,0.24,0,0.0238
+"Claude Sonnet 5.5 (frontier, for contrast)",api,10000000.0,35.25,0,3.5252
+"AWS g6.xlarge L4, us-east-1 (always on)",gpu_always_on,10000000.0,587.5,1,58.7504
+"AWS g6.xlarge L4, us-east-1 (busy hours only)",gpu_busy_only,10000000.0,6.17,,0.6173
+"AWS g6.xlarge L4, eu-west-2 London (always on)",gpu_always_on,10000000.0,745.77,1,74.5768
+"AWS g6.xlarge L4, eu-west-2 London (busy hours only)",gpu_busy_only,10000000.0,7.84,,0.7836
+"RunPod L4, Secure Cloud (always on)",gpu_always_on,10000000.0,503.7,1,50.37
+"RunPod L4, Secure Cloud (busy hours only)",gpu_busy_only,10000000.0,5.29,,0.5293
+Own RTX 4070-class machine,own_gpu,10000000.0,45.97,1,4.5974
+"Fireworks serverless, 4B-16B tier",api,100000000.0,20.0,0,0.2
+DeepInfra Llama-3.1-8B-Instruct-Turbo,api,100000000.0,2.38,0,0.0238
+"Claude Sonnet 5.5 (frontier, for contrast)",api,100000000.0,352.52,0,3.5252
+"AWS g6.xlarge L4, us-east-1 (always on)",gpu_always_on,100000000.0,587.5,1,5.875
+"AWS g6.xlarge L4, us-east-1 (busy hours only)",gpu_busy_only,100000000.0,61.73,,0.6173
+"AWS g6.xlarge L4, eu-west-2 London (always on)",gpu_always_on,100000000.0,745.77,1,7.4577
+"AWS g6.xlarge L4, eu-west-2 London (busy hours only)",gpu_busy_only,100000000.0,78.36,,0.7836
+"RunPod L4, Secure Cloud (always on)",gpu_always_on,100000000.0,503.7,1,5.037
+"RunPod L4, Secure Cloud (busy hours only)",gpu_busy_only,100000000.0,52.93,,0.5293
+Own RTX 4070-class machine,own_gpu,100000000.0,46.66,1,0.4666
+"Fireworks serverless, 4B-16B tier",api,1000000000.0,200.0,0,0.2
+DeepInfra Llama-3.1-8B-Instruct-Turbo,api,1000000000.0,23.81,0,0.0238
+"Claude Sonnet 5.5 (frontier, for contrast)",api,1000000000.0,3525.18,0,3.5252
+"AWS g6.xlarge L4, us-east-1 (always on)",gpu_always_on,1000000000.0,587.5,1,0.5875
+"AWS g6.xlarge L4, us-east-1 (busy hours only)",gpu_busy_only,1000000000.0,617.34,,0.6173
+"AWS g6.xlarge L4, eu-west-2 London (always on)",gpu_always_on,1000000000.0,745.77,1,0.7458
+"AWS g6.xlarge L4, eu-west-2 London (busy hours only)",gpu_busy_only,1000000000.0,783.64,,0.7836
+"RunPod L4, Secure Cloud (always on)",gpu_always_on,1000000000.0,503.7,1,0.5037
+"RunPod L4, Secure Cloud (busy hours only)",gpu_busy_only,1000000000.0,529.28,,0.5293
+Own RTX 4070-class machine,own_gpu,1000000000.0,53.55,1,0.0536

@@ -1,0 +1,14 @@
+.git
+.github
+.idea
+.vscode
+.venv
+.env
+**/__pycache__
+**/*.pyc
+.pytest_cache
+*.egg-info
+# Per-run prompts and responses (large, already gitignored). JSONL logs and summaries are kept.
+results/*/artifacts
+docker-compose.yml
+docker/

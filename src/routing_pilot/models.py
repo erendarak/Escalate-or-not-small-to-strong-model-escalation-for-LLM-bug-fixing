@@ -44,6 +44,34 @@ class ModelSpec:
     hosting: str = "local"   # local | api  (for reporting)
 
 
+DEFAULT_OLLAMA_HOSTS = {"localhost:11434", "127.0.0.1:11434"}
+
+
+def ollama_base_url(base_url: str | None, ollama_host: str | None) -> str | None:
+    """Point a default local-Ollama URL at OLLAMA_HOST, if that is set.
+
+    Configs hard-code http://localhost:11434/v1. Inside Docker Compose the server
+    is http://ollama:11434 instead. Only URLs aimed at the default local Ollama are
+    rewritten (the path, e.g. /v1, is kept); API endpoints are never touched.
+    OLLAMA_HOST may be "ollama:11434", "http://ollama:11434" or a bare host.
+    """
+    from urllib.parse import urlsplit
+    if not base_url or not ollama_host:
+        return base_url
+    parts = urlsplit(base_url)
+    if parts.netloc not in DEFAULT_OLLAMA_HOSTS:
+        return base_url
+    host = ollama_host.strip().rstrip("/")
+    if "://" not in host:
+        host = "http://" + host
+    target = urlsplit(host)
+    hostname = target.hostname or "localhost"
+    if hostname == "0.0.0.0":         # a server bind address; connect via loopback
+        hostname = "127.0.0.1"
+    port = target.port or 11434
+    return f"{target.scheme}://{hostname}:{port}{parts.path}"
+
+
 def cost_usd(spec: ModelSpec, inp: int | None, out: int | None) -> float:
     return ((inp or 0) * spec.usd_per_1m_input + (out or 0) * spec.usd_per_1m_output) / 1e6
 

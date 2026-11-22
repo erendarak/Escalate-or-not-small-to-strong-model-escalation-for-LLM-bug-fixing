@@ -1,0 +1,13 @@
+gpu_option,api_option,gpu_fixed_usd_per_month,break_even_tokens_per_month,one_gpu_capacity_tokens_per_month,reachable_on_one_gpu
+"AWS g6.xlarge L4, us-east-1 (always on)","Fireworks serverless, 4B-16B tier",587.5,2937520000,1903355280,False
+"AWS g6.xlarge L4, us-east-1 (always on)",DeepInfra Llama-3.1-8B-Instruct-Turbo,587.5,24671618127,1903355280,False
+"AWS g6.xlarge L4, us-east-1 (always on)","Claude Sonnet 5.5 (frontier, for contrast)",587.5,166659298,1903355280,True
+"AWS g6.xlarge L4, eu-west-2 London (always on)","Fireworks serverless, 4B-16B tier",745.77,3728840000,1903355280,False
+"AWS g6.xlarge L4, eu-west-2 London (always on)",DeepInfra Llama-3.1-8B-Instruct-Turbo,745.77,31317749849,1903355280,False
+"AWS g6.xlarge L4, eu-west-2 London (always on)","Claude Sonnet 5.5 (frontier, for contrast)",745.77,211554596,1903355280,True
+"RunPod L4, Secure Cloud (always on)","Fireworks serverless, 4B-16B tier",503.7,2518500000,1903355280,False
+"RunPod L4, Secure Cloud (always on)",DeepInfra Llama-3.1-8B-Instruct-Turbo,503.7,21152356495,1903355280,False
+"RunPod L4, Secure Cloud (always on)","Claude Sonnet 5.5 (frontier, for contrast)",503.7,142886327,1903355280,True
+Own RTX 4070-class machine,"Fireworks serverless, 4B-16B tier",45.9,229487920,1903355280,True
+Own RTX 4070-class machine,DeepInfra Llama-3.1-8B-Instruct-Turbo,45.9,1927421197,1903355280,False
+Own RTX 4070-class machine,"Claude Sonnet 5.5 (frontier, for contrast)",45.9,13019927,1903355280,True

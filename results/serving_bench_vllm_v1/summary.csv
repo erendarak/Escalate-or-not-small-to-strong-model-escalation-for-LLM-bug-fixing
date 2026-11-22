@@ -1,0 +1,6 @@
+target,model,concurrency,n_requests,median_ttft_s,median_decode_tok_s_per_request,median_client_decode_tok_s,median_prefill_tok_s,median_aggregate_tok_s,median_aggregate_total_tok_s,median_output_tokens,median_request_wall_s,ollama_model_vram_mib,gpu_peak_mib,gpu_peak_minus_baseline_mib
+vllm,qwen2.5-coder:1.5b,1,10,0.036,72.448,72.448,,71.695,237.35,223.0,3.09,,6602,44
+vllm,qwen2.5-coder:1.5b,2,20,0.035,71.887,71.887,,101.19,354.0,223.0,3.114,,6602,44
+vllm,qwen2.5-coder:1.5b,4,40,0.041,70.76,70.76,,194.89,731.86,223.0,3.174,,6602,44
+vllm,qwen2.5-coder:1.5b,8,80,0.047,69.351,69.351,,381.265,1394.37,223.0,3.239,,6602,44
+vllm,qwen2.5-coder:1.5b,16,160,0.055,66.289,66.289,,732.33,2671.525,223.0,3.388,,6602,44

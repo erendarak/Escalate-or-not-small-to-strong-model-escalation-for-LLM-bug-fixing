@@ -27,7 +27,11 @@ class StubOllama(BaseHTTPRequestHandler):
         self.wfile.write(data)
 
     def do_GET(self):
-        if self.path == "/api/version":
+        if self.path == "/v1/models":
+            self._json({"data": [{"id": "m", "root": "Org/M-Instruct", "max_model_len": 4096}]})
+        elif self.path == "/version":
+            self._json({"version": "stub"})
+        elif self.path == "/api/version":
             self._json({"version": "stub"})
         elif self.path == "/api/ps":
             self._json({"models": [{"name": m, "size": 2**30, "size_vram": 2**30, "context_length": 4096}
@@ -40,6 +44,15 @@ class StubOllama(BaseHTTPRequestHandler):
         elif self.path == "/api/generate":            # keep_alive=0: unload
             self.loaded.discard(body["model"])
             self._json({"done": True})
+        elif self.path == "/v1/chat/completions":           # OpenAI-style SSE stream with a usage chunk
+            self.send_response(200)
+            self.send_header("Content-Type", "text/event-stream")
+            self.end_headers()
+            for tok in ["def", " f", "():"]:
+                chunk = {"choices": [{"delta": {"content": tok}}]}
+                self.wfile.write(("data: " + json.dumps(chunk) + "\n\n").encode())
+            usage = {"choices": [], "usage": {"prompt_tokens": 100, "completion_tokens": 3}}
+            self.wfile.write(("data: " + json.dumps(usage) + "\n\ndata: [DONE]\n\n").encode())
         elif self.path == "/api/chat":
             self.loaded.add(body["model"])
             self.send_response(200)
@@ -70,3 +83,20 @@ def test_serving_bench_end_to_end_against_stub(tmp_path):
     assert "<svg" in (out / "throughput.svg").read_text()
     env = json.loads((out / "environment.json").read_text())
     assert env["targets"]["stub"]["models"]["m"]["quantization_level"] == "Q4_K_M"
+
+
+def test_serving_bench_openai_mode_against_stub(tmp_path):
+    srv = ThreadingHTTPServer(("127.0.0.1", 0), StubOllama)
+    threading.Thread(target=srv.serve_forever, daemon=True).start()
+    try:
+        url = f"http://127.0.0.1:{srv.server_address[1]}"
+        bench.main(["--target", f"vllm=openai+{url}", "--model", "m", "--concurrency", "2",
+                    "--rounds", "1", "--no-vram", "--campaign", "o", "--results-dir", str(tmp_path)])
+    finally:
+        srv.shutdown()
+    reqs = list(csv.DictReader((tmp_path / "o" / "requests.csv").open()))
+    assert len(reqs) == 2 and all(r["output_tokens"] == "3" and r["prompt_tokens"] == "100" for r in reqs)
+    assert all(float(r["client_decode_tok_s"]) > 0 for r in reqs)
+    env = json.loads((tmp_path / "o" / "environment.json").read_text())
+    assert env["targets"]["vllm"]["models"]["m"]["root"] == "Org/M-Instruct"
+    assert "vLLM stub" in (tmp_path / "o" / "summary.md").read_text()

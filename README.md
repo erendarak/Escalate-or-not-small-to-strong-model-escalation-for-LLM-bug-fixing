@@ -164,13 +164,47 @@ bills. Full table, including 2 concurrent requests:
 - **Concurrency helps less than expected.** Four parallel requests roughly doubled the 7B's total
   throughput, but per-request decode speed was bimodal (about 48 or 24 tok/s at 2 concurrent).
   Ollama either ran the requests one after another or shared decode between them with little gain.
-  A continuous-batching server such as vLLM is built to fix this; that was not tested here.
 - The 7B used 5.2 GB of VRAM, plus about 0.7 GB for the desktop. GPU board power was about 5 W
   idle and 61–68 W under load. A cold model load took 2–6 s.
 - On Windows, use `127.0.0.1` rather than `localhost` for one-connection-per-request clients: each
   new connection to `localhost` waited about 2 s for an IPv6 fallback (2.04 s against 0.002 s).
   The benchmark switches to `127.0.0.1` itself. The study's OpenAI client reuses its connection,
   and its logged latencies (as low as 0.26 s) show no such floor.
+
+### vLLM vs Ollama (1.5B)
+
+The 1.5B model was also served with vLLM 0.33.0 in Docker (`docker compose --profile vllm up -d vllm`),
+behind its OpenAI-compatible endpoint, and compared with Ollama's OpenAI-compatible endpoint on the
+same prompts. Both used the same client-side measurement, greedy decoding and 4096-token context, and
+ran one at a time on the GPU. Output lengths matched per task (within 2 tokens). Medians of 10
+batches per level:
+
+| Concurrent | vLLM output tok/s | Ollama output tok/s | vLLM TTFT | Ollama TTFT |
+|---|---|---|---|---|
+| 1 | 72 | 159 | 0.04 s | 0.05 s |
+| 4 | 195 | 310 | 0.04 s | 0.04 s |
+| 8 | 381 | 296 | 0.05 s | 0.40 s |
+| 16 | 732 | 307 | 0.06 s | 2.71 s |
+
+![vLLM vs Ollama throughput](results/serving_bench_vllm_v1/vllm_vs_ollama.svg)
+
+- vLLM's per-request decode speed stayed at 66–72 tok/s from 1 to 16 concurrent requests, so total
+  throughput grew almost linearly. Ollama levelled off at about 300 tok/s once its 4 parallel slots
+  were full; further requests queued, which shows up as rising time to first token.
+- Single-stream, Ollama was 2.2 times faster. The models are not the same precision: vLLM served the
+  unquantized BF16 weights (2.98 GiB) and Ollama the Q4_K_M build (about 1 GB). Decode is mostly
+  limited by memory bandwidth, so reading three times as many bytes per token is the likely cause.
+  The comparison is of two serving setups as they are commonly run, not of the engines alone.
+- vLLM reserves a fixed share of VRAM at start-up (here 75%: weights plus a 1.93 GiB KV cache, room
+  for about 17 concurrent 4k-token requests), so it held 6.6 GB of GPU memory even when idle and
+  could not run next to Ollama on this 8 GB GPU. Start-up took about 50 s with cached weights.
+- Not tested: the 7B in vLLM (it would need a quantized build such as AWQ to fit next to a KV cache in
+  8 GB), and Kubernetes.
+
+Results: [results/serving_bench_vllm_v1](results/serving_bench_vllm_v1/summary.md) and
+[results/serving_bench_ollama_oai_v1](results/serving_bench_ollama_oai_v1/summary.md).
+
+### Hosting costs
 
 `scripts/hosting_cost.py` turns the measured 7B throughput and dated list prices into monthly
 costs for a per-token API, a rented L4 and an own GPU, at 1M to 1B tokens a month. At this

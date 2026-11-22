@@ -44,5 +44,39 @@ services:
       - ./results:/app/results           # campaign outputs land on the host
     profiles: ["eval"]                   # not started by a plain `docker compose up`; use `docker compose run`
 
+  # Optional (added November 2026): the 1.5B model served by vLLM behind an OpenAI-compatible API, for the
+  # serving benchmark. Unquantized BF16 weights from Hugging Face (about 3 GB), so not the same precision as
+  # Ollama's Q4_K_M. Stop the Ollama models first on an 8 GB GPU: vLLM reserves a fixed share of VRAM.
+  #   docker compose --profile vllm up -d vllm
+  vllm:
+    image: vllm/vllm-openai:v0.33.0
+    command:
+      - --model=Qwen/Qwen2.5-Coder-1.5B-Instruct
+      - --served-model-name=qwen2.5-coder:1.5b   # same name as in Ollama, so the benchmark sends identical requests
+      - --max-model-len=4096                     # same context as the Ollama runs
+      - --gpu-memory-utilization=0.75            # share of total VRAM vLLM pre-allocates (weights + KV cache)
+      - --seed=0
+      - --generation-config=vllm                 # ignore the model's sampling defaults (e.g. repetition_penalty 1.1)
+    ports:
+      - "127.0.0.1:8000:8000"
+    volumes:
+      - hf-cache:/root/.cache/huggingface        # downloaded weights persist
+    shm_size: 2gb
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 60
+      start_period: 60s
+    profiles: ["vllm"]
+
 volumes:
   ollama-models:
+  hf-cache:

@@ -66,9 +66,10 @@ What this says, with these inputs:
 - **An owned machine beats Fireworks above about 230M tokens a month,** under the hardware
   assumption. Electricity is small: the GPU draws 6 W idle and 63 W under load.
 - **Throughput dominates the GPU rows.** Ollama on one laptop GPU barely gains from concurrent
-  requests (see the serving benchmark). A batching server such as vLLM on a datacentre GPU could
-  serve several times more tokens per GPU-hour, which would move all GPU break-even points down by
-  the same factor. That was not measured here.
+  requests. With the 1.5B model, vLLM reached 2.4 times Ollama's peak output throughput at 16
+  concurrent requests (732 vs about 300 tok/s), and was still climbing. Serving the 7B that way
+  would cut the GPU cost per token by a similar factor, and lower every GPU break-even point by the
+  same factor. The 7B was not measured in vLLM, so the table uses Ollama's throughput.
 - The UK region costs 27% more than us-east-1 on AWS. None of the per-token APIs checked offers UK
   processing at all (see the privacy section).
 
@@ -131,6 +132,10 @@ This is a summary of what the providers and the ICO publish, not legal advice.
 - **Per-token API.** No servers to run and no idle cost. In exchange you get the provider's rate
   limits, model versions that can change or be retired, prompts leaving your infrastructure, and a
   bill that grows linearly with volume.
+- **Serving engine.** Ollama is simple to run and loads and unloads models on demand, which suits
+  one machine with several models. vLLM keeps one model resident, reserves most of the VRAM up
+  front and batches concurrent requests, which suits a dedicated GPU serving many users. On this
+  8 GB GPU the two could not run at the same time.
 - **Containers.** The Docker setup in this repo (`docker-compose.yml`) is the same unit you would run
   on a rented GPU host. Kubernetes was not tested here; it would add scheduling, health checks and
   rolling updates on top of the same image.
@@ -138,8 +143,8 @@ This is a summary of what the providers and the ICO publish, not legal advice.
 ## Limitations
 
 - Throughput was measured on one laptop GPU with Q4_K_M quantization and Ollama. A datacentre GPU
-  with a batching server such as vLLM would give much higher throughput per GPU, so the GPU rows
-  are pessimistic for high volumes.
+  with a batching server such as vLLM would give much higher throughput per GPU (vLLM with the
+  1.5B already did here, see the README), so the GPU rows are pessimistic for high volumes.
 - API prices are list prices for possibly different precision or model versions. DeepInfra's row is
   a different 8B model, and Sonnet is a much stronger model, included only as a price reference.
 - Hardware cost and life for the own machine are assumptions. Energy covers the GPU board only.
